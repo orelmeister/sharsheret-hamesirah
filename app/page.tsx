@@ -3,6 +3,8 @@ import { Header } from '@/components/layout/Header';
 import { PERIODS, PERIOD_ORDER } from '@/lib/constants';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const scholarCount = await prisma.scholar.count({ where: { status: 'PUBLISHED' } });
   const periodCounts = await Promise.all(

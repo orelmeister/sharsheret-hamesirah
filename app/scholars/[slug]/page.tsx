@@ -5,6 +5,8 @@ import { PERIODS, RELATIONSHIP_TYPES, CONFIDENCE_LEVELS } from '@/lib/constants'
 import { formatYear, formatYearRange } from '@/lib/utils';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ScholarPage({ params }: { params: { slug: string } }) {
   const scholar = await prisma.scholar.findUnique({
     where: { slug: params.slug },
@@ -34,17 +36,14 @@ export default async function ScholarPage({ params }: { params: { slug: string }
   const period = PERIODS[scholar.period as keyof typeof PERIODS];
   const teachers = scholar.relationshipsTo.filter((r) => r.type === 'RAV');
   const students = scholar.relationshipsFrom.filter((r) => r.type === 'RAV');
+  // Separate From and To to resolve TypeScript union types
   const chevrutot = [
-    ...scholar.relationshipsFrom.filter((r) => r.type === 'CHEVRUTA'),
-    ...scholar.relationshipsTo.filter((r) => r.type === 'CHEVRUTA'),
+    ...scholar.relationshipsFrom.filter((r) => r.type === 'CHEVRUTA').map((r) => ({ ...r, peer: r.toScholar })),
+    ...scholar.relationshipsTo.filter((r) => r.type === 'CHEVRUTA').map((r) => ({ ...r, peer: r.fromScholar })),
   ];
   const disputants = [
-    ...scholar.relationshipsFrom.filter((r) => r.type === 'DISPUTANT'),
-    ...scholar.relationshipsTo.filter((r) => r.type === 'DISPUTANT'),
-  ];
-  const contemporaries = [
-    ...scholar.relationshipsFrom.filter((r) => r.type === 'CONTEMPORARY'),
-    ...scholar.relationshipsTo.filter((r) => r.type === 'CONTEMPORARY'),
+    ...scholar.relationshipsFrom.filter((r) => r.type === 'DISPUTANT').map((r) => ({ ...r, peer: r.toScholar })),
+    ...scholar.relationshipsTo.filter((r) => r.type === 'DISPUTANT').map((r) => ({ ...r, peer: r.fromScholar })),
   ];
 
   return (
@@ -217,7 +216,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
           {/* Sidebar */}
           <aside className="space-y-6">
             {/* Relationships */}
-            {(chevrutot.length > 0 || disputants.length > 0 || contemporaries.length > 0) && (
+            {(chevrutot.length > 0 || disputants.length > 0) && (
               <div className="scholar-card">
                 <h3 className="font-display text-lg text-stone-700 mb-3">קשרים</h3>
                 {chevrutot.length > 0 && (
@@ -226,10 +225,10 @@ export default async function ScholarPage({ params }: { params: { slug: string }
                     {chevrutot.map((r) => (
                       <Link
                         key={r.id}
-                        href={`/scholars/${r.fromScholarId === scholar.id ? r.toScholar.slug : r.fromScholar.slug}`}
+                        href={`/scholars/${r.peer.slug}`}
                         className="block text-sm text-stone-600 hover:text-amber-700 py-1"
                       >
-                        {r.fromScholarId === scholar.id ? r.toScholar.nameHe : r.fromScholar.nameHe}
+                        {r.peer.nameHe}
                       </Link>
                     ))}
                   </div>
@@ -240,10 +239,10 @@ export default async function ScholarPage({ params }: { params: { slug: string }
                     {disputants.map((r) => (
                       <Link
                         key={r.id}
-                        href={`/scholars/${r.fromScholarId === scholar.id ? r.toScholar.slug : r.fromScholar.slug}`}
+                        href={`/scholars/${r.peer.slug}`}
                         className="block text-sm text-stone-600 hover:text-amber-700 py-1"
                       >
-                        {r.fromScholarId === scholar.id ? r.toScholar.nameHe : r.fromScholar.nameHe}
+                        {r.peer.nameHe}
                       </Link>
                     ))}
                   </div>

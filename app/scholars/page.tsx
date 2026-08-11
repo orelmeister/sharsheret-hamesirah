@@ -4,6 +4,8 @@ import { PERIODS, PERIOD_ORDER } from '@/lib/constants';
 import { formatYearRange } from '@/lib/utils';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ScholarsListPage({
   searchParams,
 }: {

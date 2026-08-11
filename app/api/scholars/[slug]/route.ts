@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+type ScholarRef = {
+  id: string;
+  slug: string;
+  nameHe: string;
+  period: string;
+};
+
+type SourceRef = {
+  id: string;
+  titleHe: string;
+  pageRef: string | null;
+  url: string | null;
+} | null;
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { slug: string } }
@@ -20,26 +34,10 @@ export async function GET(
           source: { select: { id: true, titleHe: true, pageRef: true, url: true } },
         },
       },
-      scholarSources: {
-        include: {
-          source: true,
-        },
-      },
-      scholarPlaces: {
-        include: {
-          place: true,
-        },
-      },
-      scholarEvents: {
-        include: {
-          event: true,
-        },
-      },
-      scholarTags: {
-        include: {
-          tag: true,
-        },
-      },
+      scholarSources: { include: { source: true } },
+      scholarPlaces: { include: { place: true } },
+      scholarEvents: { include: { event: true } },
+      scholarTags: { include: { tag: true } },
       generation: true,
       empire: true,
     },
@@ -49,7 +47,6 @@ export async function GET(
     return NextResponse.json({ error: 'Scholar not found' }, { status: 404 });
   }
 
-  // Organize relationships
   const teachers = scholar.relationshipsTo
     .filter((r) => r.type === 'RAV')
     .map((r) => ({ scholar: r.fromScholar, source: r.source, confidence: r.confidence }));
@@ -59,25 +56,34 @@ export async function GET(
     .map((r) => ({ scholar: r.toScholar, source: r.source, confidence: r.confidence }));
 
   const chevrutot = [
-    ...scholar.relationshipsFrom.filter((r) => r.type === 'CHEVRUTA'),
-    ...scholar.relationshipsTo.filter((r) => r.type === 'CHEVRUTA'),
-  ].map((r) => ({
-    scholar: 'fromScholarId' in r && r.fromScholarId === scholar.id ? r.toScholar : r.fromScholar,
-    confidence: r.confidence,
-    source: r.source,
-  }));
+    ...scholar.relationshipsFrom
+      .filter((r) => r.type === 'CHEVRUTA')
+      .map((r) => ({ scholar: r.toScholar as ScholarRef, confidence: r.confidence, source: r.source as SourceRef })),
+    ...scholar.relationshipsTo
+      .filter((r) => r.type === 'CHEVRUTA')
+      .map((r) => ({ scholar: r.fromScholar as ScholarRef, confidence: r.confidence, source: r.source as SourceRef })),
+  ];
 
   const disputants = [
-    ...scholar.relationshipsFrom.filter((r) => r.type === 'DISPUTANT'),
-    ...scholar.relationshipsTo.filter((r) => r.type === 'DISPUTANT'),
-  ].map((r) => ({
-    scholar: 'fromScholarId' in r && r.fromScholarId === scholar.id ? r.toScholar : r.fromScholar,
-    confidence: r.confidence,
-    source: r.source,
-  }));
+    ...scholar.relationshipsFrom
+      .filter((r) => r.type === 'DISPUTANT')
+      .map((r) => ({ scholar: r.toScholar as ScholarRef, confidence: r.confidence, source: r.source as SourceRef })),
+    ...scholar.relationshipsTo
+      .filter((r) => r.type === 'DISPUTANT')
+      .map((r) => ({ scholar: r.fromScholar as ScholarRef, confidence: r.confidence, source: r.source as SourceRef })),
+  ];
+
+  const contemporaries = [
+    ...scholar.relationshipsFrom
+      .filter((r) => r.type === 'CONTEMPORARY')
+      .map((r) => ({ scholar: r.toScholar as ScholarRef, confidence: r.confidence, source: r.source as SourceRef })),
+    ...scholar.relationshipsTo
+      .filter((r) => r.type === 'CONTEMPORARY')
+      .map((r) => ({ scholar: r.fromScholar as ScholarRef, confidence: r.confidence, source: r.source as SourceRef })),
+  ];
 
   return NextResponse.json({
     ...scholar,
-    _relations: { teachers, students, chevrutot, disputants },
+    _relations: { teachers, students, chevrutot, disputants, contemporaries },
   });
 }
