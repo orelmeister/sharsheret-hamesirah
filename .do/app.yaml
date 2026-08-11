@@ -1,0 +1,35 @@
+name: sharsheret-hamesirah
+region: nyc
+services:
+  - name: web
+    github:
+      repo: orelmeister/sharsheret-hamesirah
+      branch: main
+      deploy_on_push: true
+    build_command: npm ci && npx prisma generate && npm run build
+    run_command: npx prisma migrate deploy && npm run start
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${db.DATABASE_URL}
+      - key: NEXTAUTH_URL
+        scope: RUN_TIME
+        value: ${APP_URL}
+      - key: NEXTAUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+      - key: ADMIN_USERNAME
+        scope: RUN_TIME
+        type: SECRET
+      - key: ADMIN_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+databases:
+  - name: db
+    engine: PG
+    version: "15"
+    production: true
+    cluster_name: sharsheret-hamesirah-db
