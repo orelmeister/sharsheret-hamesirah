@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Scholar ──
+model Scholar {
+  id            String    @id @default(uuid())
+  slug          String    @unique
+  nameHe        String
+  alternateNames String[] @default([])
+
+  // Period & generation
+  period        String    // ANSHEI_KNESSET | ZUGOT | TANNAIM | AMORAIM_ERETZ_YISRAEL | AMORAIM_BAVEL | SAVORAIM
+  generationId  String?
+  generation    Generation? @relation(fields: [generationId], references: [id])
+
+  // Lifespan
+  birthStart    Int?      // CE year (negative for BCE)
+  birthEnd      Int?
+  deathStart    Int?
+  deathEnd      Int?
+  dateConfidence String    @default("UNKNOWN") // CERTAIN | STRONG | TRADITIONAL | DISPUTED | UNKNOWN
+
+  // Bio
+  biographyShort String?
+  role           String?
+  placeNotes     String?
+  featuredQuote  String?
+  featuredStory  String?
+  memorySummary  String?  // "נודע במיוחד בזכות"
+
+  // Empire context
+  empireId      String?
+  empire        Empire?   @relation(fields: [empireId], references: [id])
+
+  // Publishing
+  status        String    @default("DRAFT") // DRAFT | REVIEW | APPROVED | PUBLISHED | ARCHIVED
+
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  relationshipsFrom Relationship[] @relation("FromScholar")
+  relationshipsTo   Relationship[] @relation("ToScholar")
+  scholarSources    ScholarSource[]
+  scholarPlaces     ScholarPlace[]
+  scholarRulers     ScholarRuler[]
+  scholarEvents     ScholarEvent[]
+  scholarTags       ScholarTag[]
+}
+
+// ── Generation ──
+model Generation {
+  id          String   @id @default(uuid())
+  nameHe      String
+  period      String
+  order       Int
+  scholars    Scholar[]
+}
+
+// ── Period ──
+model Period {
+  id          String @id @default(uuid())
+  nameHe      String
+  slug        String @unique
+  color       String
+  startYear   Int?
+  endYear     Int?
+  order       Int
+}
+
+// ── Relationship ──
+model Relationship {
+  id              String   @id @default(uuid())
+  fromScholarId   String
+  toScholarId     String
+  type            String   // RAV | STUDENT | CHEVRUTA | DISPUTANT | CONTEMPORARY | FAMILY
+  confidence      String   @default("TRADITIONAL") // CERTAIN | STRONG | TRADITIONAL | DISPUTED | UNKNOWN
+  sourceId        String?
+  source          Source?  @relation(fields: [sourceId], references: [id])
+  notes           String?
+
+  fromScholar     Scholar  @relation("FromScholar", fields: [fromScholarId], references: [id])
+  toScholar       Scholar  @relation("ToScholar", fields: [toScholarId], references: [id])
+}
+
+// ── Source ──
+model Source {
+  id          String   @id @default(uuid())
+  type        String   // MISHNAH | TOSEFTA | BAVLI | YERUSHALMI | MIDRASH | GEONIM | RISHONIM | ACHARONIM | HISTORICAL
+  titleHe     String
+  author      String?
+  tractate    String?  // מסכת
+  chapter     String?  // פרק
+  pageRef     String?  // דף/עמוד
+  section     String?  // סימן/סעיף
+  quoteHe     String?  // ציטוט קצר
+  url         String?  // Link to Sefaria
+  notes       String?
+
+  scholarSources  ScholarSource[]
+  relationships   Relationship[]
+}
+
+// ── Scholar-Source (M2M) ──
+model ScholarSource {
+  id         String  @id @default(uuid())
+  scholarId  String
+  sourceId   String
+  relevance  String?
+
+  scholar    Scholar @relation(fields: [scholarId], references: [id])
+  source     Source  @relation(fields: [sourceId], references: [id])
+}
+
+// ── Place ──
+model Place {
+  id       String  @id @default(uuid())
+  nameHe   String
+  nameEn   String?
+  lat      Float?
+  lng      Float?
+  region   String?
+
+  scholarPlaces ScholarPlace[]
+  events        Event[]
+}
+
+// ── Scholar-Place (M2M) ──
+model ScholarPlace {
+  id        String @id @default(uuid())
+  scholarId String
+  placeId   String
+  notes     String?
+
+  scholar   Scholar @relation(fields: [scholarId], references: [id])
+  place     Place   @relation(fields: [placeId], references: [id])
+}
+
+// ── Empire ──
+model Empire {
+  id       String  @id @default(uuid())
+  nameHe   String
+  periodId String?
+
+  scholars  Scholar[]
+  rulers    Ruler[]
+}
+
+// ── Ruler ──
+model Ruler {
+  id         String @id @default(uuid())
+  nameHe     String
+  empireId   String?
+  reignStart Int?
+  reignEnd   Int?
+
+  empire     Empire?        @relation(fields: [empireId], references: [id])
+  scholarRulers ScholarRuler[]
+}
+
+// ── Scholar-Ruler (M2M) ──
+model ScholarRuler {
+  id        String @id @default(uuid())
+  scholarId String
+  rulerId   String
+  notes     String?
+
+  scholar   Scholar @relation(fields: [scholarId], references: [id])
+  ruler     Ruler   @relation(fields: [rulerId], references: [id])
+}
+
+// ── Event ──
+model Event {
+  id          String  @id @default(uuid())
+  titleHe     String
+  dateStart   Int?
+  dateEnd     Int?
+  description String?
+  placeId     String?
+  category    String? // EREZ_YISRAEL | WORLD | JEWISH_HISTORY
+
+  place       Place?  @relation(fields: [placeId], references: [id])
+  scholarEvents ScholarEvent[]
+}
+
+// ── Scholar-Event (M2M) ──
+model ScholarEvent {
+  id        String @id @default(uuid())
+  scholarId String
+  eventId   String
+
+  scholar   Scholar @relation(fields: [scholarId], references: [id])
+  event     Event   @relation(fields: [eventId], references: [id])
+}
+
+// ── Tag ──
+model Tag {
+  id       String @id @default(uuid())
+  nameHe   String
+  slug     String @unique
+
+  scholarTags ScholarTag[]
+}
+
+// ── Scholar-Tag (M2M) ──
+model ScholarTag {
+  id        String @id @default(uuid())
+  scholarId String
+  tagId     String
+
+  scholar   Scholar @relation(fields: [scholarId], references: [id])
+  tag       Tag     @relation(fields: [tagId], references: [id])
+}
+
+// ── User (Admin) ──
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  passwordHash String
+  name      String?
+  role      String   @default("editor") // admin | editor
+  createdAt DateTime @default(now())
+}
+
+// ── Audit Log ──
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   // CREATE | UPDATE | DELETE | PUBLISH | ARCHIVE
+  entity    String   // scholar | source | relationship | etc.
+  entityId  String
+  changes   Json?
+  createdAt DateTime @default(now())
+}

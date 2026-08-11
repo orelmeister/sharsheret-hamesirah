@@ -1,0 +1,278 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Header } from '@/components/layout/Header';
+import { PERIODS, RELATIONSHIP_TYPES, CONFIDENCE_LEVELS } from '@/lib/constants';
+import { formatYear, formatYearRange } from '@/lib/utils';
+import { prisma } from '@/lib/prisma';
+
+export default async function ScholarPage({ params }: { params: { slug: string } }) {
+  const scholar = await prisma.scholar.findUnique({
+    where: { slug: params.slug },
+    include: {
+      relationshipsFrom: {
+        include: {
+          toScholar: { select: { id: true, slug: true, nameHe: true, period: true } },
+          source: { select: { id: true, titleHe: true, pageRef: true, url: true } },
+        },
+      },
+      relationshipsTo: {
+        include: {
+          fromScholar: { select: { id: true, slug: true, nameHe: true, period: true } },
+          source: { select: { id: true, titleHe: true, pageRef: true, url: true } },
+        },
+      },
+      scholarSources: { include: { source: true } },
+      scholarPlaces: { include: { place: true } },
+      scholarEvents: { include: { event: true } },
+      generation: true,
+      empire: true,
+    },
+  });
+
+  if (!scholar || scholar.status !== 'PUBLISHED') notFound();
+
+  const period = PERIODS[scholar.period as keyof typeof PERIODS];
+  const teachers = scholar.relationshipsTo.filter((r) => r.type === 'RAV');
+  const students = scholar.relationshipsFrom.filter((r) => r.type === 'RAV');
+  const chevrutot = [
+    ...scholar.relationshipsFrom.filter((r) => r.type === 'CHEVRUTA'),
+    ...scholar.relationshipsTo.filter((r) => r.type === 'CHEVRUTA'),
+  ];
+  const disputants = [
+    ...scholar.relationshipsFrom.filter((r) => r.type === 'DISPUTANT'),
+    ...scholar.relationshipsTo.filter((r) => r.type === 'DISPUTANT'),
+  ];
+  const contemporaries = [
+    ...scholar.relationshipsFrom.filter((r) => r.type === 'CONTEMPORARY'),
+    ...scholar.relationshipsTo.filter((r) => r.type === 'CONTEMPORARY'),
+  ];
+
+  return (
+    <>
+      <Header />
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Title Bar */}
+        <div className={`border-r-4 pr-4 mb-8 ${period?.borderClass || 'border-stone-300'}`}>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className={`period-badge text-sm ${period?.bgClass}`}>{period?.label}</span>
+            {scholar.role && (
+              <span className="text-stone-500 text-sm">{scholar.role}</span>
+            )}
+          </div>
+          <h1 className="font-display text-4xl md:text-5xl text-stone-800 mt-2">{scholar.nameHe}</h1>
+          {scholar.alternateNames.length > 0 && (
+            <p className="text-stone-500 mt-1">{scholar.alternateNames.join(' • ')}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Identity Card */}
+            <section>
+              <h2 className="section-title">תעודת זהות</h2>
+              <dl className="grid grid-cols-2 gap-3 text-sm">
+                {scholar.generation && (
+                  <>
+                    <dt className="text-stone-500">דור</dt>
+                    <dd>{scholar.generation.nameHe}</dd>
+                  </>
+                )}
+                <dt className="text-stone-500">שנות חיים</dt>
+                <dd>
+                  {formatYearRange(scholar.birthStart, scholar.deathEnd)}
+                  {scholar.dateConfidence !== 'UNKNOWN' && (
+                    <span className="text-xs text-stone-400 mr-2">
+                      ({CONFIDENCE_LEVELS[scholar.dateConfidence as keyof typeof CONFIDENCE_LEVELS]?.label})
+                    </span>
+                  )}
+                </dd>
+                {scholar.placeNotes && (
+                  <>
+                    <dt className="text-stone-500">מקום פעילות</dt>
+                    <dd>{scholar.placeNotes}</dd>
+                  </>
+                )}
+                {scholar.empire && (
+                  <>
+                    <dt className="text-stone-500">אימפריה</dt>
+                    <dd>{scholar.empire.nameHe}</dd>
+                  </>
+                )}
+              </dl>
+            </section>
+
+            {/* Chain of Transmission */}
+            <section>
+              <h2 className="section-title">שרשרת המסירה</h2>
+              <div className="flex flex-col items-center gap-2">
+                {/* Teachers */}
+                {teachers.length > 0 && (
+                  <div className="w-full text-center">
+                    <p className="text-xs text-stone-400 mb-2">רבותיו</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {teachers.map((r) => (
+                        <Link
+                          key={r.id}
+                          href={`/scholars/${r.fromScholar.slug}`}
+                          className="inline-flex items-center px-3 py-1.5 bg-stone-100 hover:bg-stone-200 
+                                     rounded-lg text-sm transition-colors"
+                        >
+                          {r.fromScholar.nameHe}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Arrow down */}
+                {teachers.length > 0 && <div className="text-stone-300 text-xl">↓</div>}
+
+                {/* Current Scholar */}
+                <div className="px-6 py-3 bg-amber-100 rounded-xl font-bold text-lg text-amber-900">
+                  {scholar.nameHe}
+                </div>
+
+                {/* Arrow down */}
+                {students.length > 0 && <div className="text-stone-300 text-xl">↓</div>}
+
+                {/* Students */}
+                {students.length > 0 && (
+                  <div className="w-full text-center">
+                    <p className="text-xs text-stone-400 mb-2">תלמידיו</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {students.map((r) => (
+                        <Link
+                          key={r.id}
+                          href={`/scholars/${r.toScholar.slug}`}
+                          className="inline-flex items-center px-3 py-1.5 bg-stone-100 hover:bg-stone-200 
+                                     rounded-lg text-sm transition-colors"
+                        >
+                          {r.toScholar.nameHe}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Biography */}
+            {scholar.biographyShort && (
+              <section>
+                <h2 className="section-title">ביוגרפיה</h2>
+                <p className="text-stone-700 leading-relaxed">{scholar.biographyShort}</p>
+              </section>
+            )}
+
+            {/* Featured Quote */}
+            {scholar.featuredQuote && (
+              <section>
+                <h2 className="section-title">אמרה נבחרת</h2>
+                <blockquote className="border-r-4 border-amber-300 pr-4 py-2 bg-amber-50/50 rounded-l-lg">
+                  <p className="text-lg text-stone-700 leading-relaxed">&ldquo;{scholar.featuredQuote}&rdquo;</p>
+                </blockquote>
+              </section>
+            )}
+
+            {/* Featured Story */}
+            {scholar.featuredStory && (
+              <section>
+                <h2 className="section-title">מעשה נבחר</h2>
+                <div className="prose prose-stone max-w-none text-stone-700">{scholar.featuredStory}</div>
+              </section>
+            )}
+
+            {/* Sources */}
+            {scholar.scholarSources.length > 0 && (
+              <section>
+                <h2 className="section-title">מקורות</h2>
+                <ul className="space-y-2">
+                  {scholar.scholarSources.map((ss) => (
+                    <li key={ss.id} className="text-sm text-stone-600 border-r-2 border-stone-200 pr-3">
+                      <span className="font-medium text-stone-700">{ss.source.titleHe}</span>
+                      {ss.source.tractate && ` — ${ss.source.tractate}`}
+                      {ss.source.chapter && `, פרק ${ss.source.chapter}`}
+                      {ss.source.pageRef && `, ${ss.source.pageRef}`}
+                      {ss.source.url && (
+                        <>
+                          {' '}
+                          <a
+                            href={ss.source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-amber-700 hover:underline"
+                          >
+                            (ספריא ↗)
+                          </a>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-6">
+            {/* Relationships */}
+            {(chevrutot.length > 0 || disputants.length > 0 || contemporaries.length > 0) && (
+              <div className="scholar-card">
+                <h3 className="font-display text-lg text-stone-700 mb-3">קשרים</h3>
+                {chevrutot.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-stone-400 mb-1">חברותא</p>
+                    {chevrutot.map((r) => (
+                      <Link
+                        key={r.id}
+                        href={`/scholars/${r.fromScholarId === scholar.id ? r.toScholar.slug : r.fromScholar.slug}`}
+                        className="block text-sm text-stone-600 hover:text-amber-700 py-1"
+                      >
+                        {r.fromScholarId === scholar.id ? r.toScholar.nameHe : r.fromScholar.nameHe}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {disputants.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-stone-400 mb-1">בר פלוגתא</p>
+                    {disputants.map((r) => (
+                      <Link
+                        key={r.id}
+                        href={`/scholars/${r.fromScholarId === scholar.id ? r.toScholar.slug : r.fromScholar.slug}`}
+                        className="block text-sm text-stone-600 hover:text-amber-700 py-1"
+                      >
+                        {r.fromScholarId === scholar.id ? r.toScholar.nameHe : r.fromScholar.nameHe}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Memory Summary */}
+            {scholar.memorySummary && (
+              <div className="scholar-card bg-amber-50/50">
+                <h3 className="font-display text-lg text-stone-700 mb-2">לזכור את החכם</h3>
+                <p className="text-sm text-stone-600">{scholar.memorySummary}</p>
+              </div>
+            )}
+
+            {/* Places */}
+            {scholar.scholarPlaces.length > 0 && (
+              <div className="scholar-card">
+                <h3 className="font-display text-lg text-stone-700 mb-2">מקומות</h3>
+                {scholar.scholarPlaces.map((sp) => (
+                  <p key={sp.id} className="text-sm text-stone-600">
+                    📍 {sp.place.nameHe}
+                  </p>
+                ))}
+              </div>
+            )}
+          </aside>
+        </div>
+      </main>
+    </>
+  );
+}
