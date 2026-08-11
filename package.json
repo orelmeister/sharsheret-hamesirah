@@ -7,6 +7,7 @@
   "private": true,
   "description": "שרשרת המסירה — Interactive Knowledge Graph of Talmudic Sages",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
