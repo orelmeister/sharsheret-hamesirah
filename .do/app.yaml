@@ -7,7 +7,7 @@ services:
     branch: main
     deploy_on_push: true
   environment_slug: node-js
-  build_command: npm install --no-audit --no-fund && npx prisma generate && npm run build
+  build_command: npm ci && npx prisma generate && npm run build
   run_command: npx prisma migrate deploy && npm run start
   http_port: 3000
   instance_count: 1
