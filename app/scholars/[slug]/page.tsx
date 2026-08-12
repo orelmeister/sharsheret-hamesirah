@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
+import { ScholarAvatar } from '@/components/ScholarAvatar';
 import { PERIODS, RELATIONSHIP_TYPES, CONFIDENCE_LEVELS } from '@/lib/constants';
 import { formatYear, formatYearRange } from '@/lib/utils';
 import { prisma } from '@/lib/prisma';
@@ -51,17 +52,27 @@ export default async function ScholarPage({ params }: { params: { slug: string }
       <Header />
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Title Bar */}
-        <div className={`border-r-4 pr-4 mb-8 ${period?.borderClass || 'border-stone-300'}`}>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className={`period-badge text-sm ${period?.bgClass}`}>{period?.label}</span>
-            {scholar.role && (
-              <span className="text-stone-500 text-sm">{scholar.role}</span>
-            )}
+        <div className={`border-r-4 pr-4 mb-8 ${period?.borderClass || 'border-line'}`}>
+          <div className="flex items-start gap-4">
+            <ScholarAvatar nameHe={scholar.nameHe} period={scholar.period} imageUrl={scholar.imageUrl} size={92} className="mt-1 md:w-[112px] md:h-[112px]" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`period-badge text-sm ${period?.bgClass}`}>{period?.label}</span>
+                {scholar.role && (
+                  <span className="text-ink-muted text-sm">{scholar.role}</span>
+                )}
+              </div>
+              <h1 className="font-display font-bold text-4xl md:text-5xl text-ink mt-2">{scholar.nameHe}</h1>
+              {scholar.alternateNames.length > 0 && (
+                <p className="text-ink-muted mt-1">{scholar.alternateNames.join(' • ')}</p>
+              )}
+              {scholar.imageUrl && (
+                <p className="text-[11px] text-ink-muted mt-1.5">
+                  {scholar.imageType === 'ILLUSTRATION' ? 'איור — ' : ''}{scholar.imageCredit || 'ויקישיתוף'}
+                </p>
+              )}
+            </div>
           </div>
-          <h1 className="font-display text-4xl md:text-5xl text-stone-800 mt-2">{scholar.nameHe}</h1>
-          {scholar.alternateNames.length > 0 && (
-            <p className="text-stone-500 mt-1">{scholar.alternateNames.join(' • ')}</p>
-          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

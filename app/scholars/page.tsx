@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Header } from '@/components/layout/Header';
+import { ScholarAvatar } from '@/components/ScholarAvatar';
 import { PERIODS, PERIOD_ORDER } from '@/lib/constants';
 import { formatYearRange } from '@/lib/utils';
 import { prisma } from '@/lib/prisma';
@@ -33,6 +34,7 @@ export default async function ScholarsListPage({
         birthStart: true,
         deathEnd: true,
         memorySummary: true,
+        imageUrl: true,
       },
     }),
     prisma.scholar.count({ where }),
@@ -77,20 +79,25 @@ export default async function ScholarsListPage({
             const p = PERIODS[s.period as keyof typeof PERIODS];
             return (
               <Link key={s.id} href={`/scholars/${s.slug}`} className="scholar-card group">
-                <div className="flex items-start justify-between">
-                  <span className={`period-badge text-xs ${p?.bgClass}`}>{p?.label}</span>
-                  {s.birthStart && s.deathEnd && (
-                    <span className="text-xs text-stone-400">
-                      {formatYearRange(s.birthStart, s.deathEnd)}
-                    </span>
-                  )}
+                <div className="flex items-start gap-3">
+                  <ScholarAvatar nameHe={s.nameHe} period={s.period} imageUrl={s.imageUrl} size={52} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className={`period-badge text-xs ${p?.bgClass}`}>{p?.label}</span>
+                      {s.birthStart && s.deathEnd && (
+                        <span className="text-xs text-ink-muted whitespace-nowrap">
+                          {formatYearRange(s.birthStart, s.deathEnd)}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-display font-bold text-xl text-ink mt-1.5 group-hover:text-accent-dark transition-colors leading-tight">
+                      {s.nameHe}
+                    </h3>
+                    {s.role && <p className="text-sm text-ink-muted mt-0.5">{s.role}</p>}
+                  </div>
                 </div>
-                <h3 className="font-display text-xl text-stone-800 mt-2 group-hover:text-accent-dark transition-colors">
-                  {s.nameHe}
-                </h3>
-                {s.role && <p className="text-sm text-stone-500 mt-1">{s.role}</p>}
                 {s.memorySummary && (
-                  <p className="text-sm text-stone-400 mt-2 line-clamp-2">{s.memorySummary}</p>
+                  <p className="text-sm text-ink-muted mt-2 line-clamp-2">{s.memorySummary}</p>
                 )}
               </Link>
             );

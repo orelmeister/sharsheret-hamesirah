@@ -34,6 +34,15 @@ model Scholar {
   featuredStory  String?
   memorySummary  String?  // "נודע במיוחד בזכות"
 
+  // Media
+  imageUrl       String?  // portrait / gravesite / manuscript / generated illustration
+  imageType      String?  // WIKIMEDIA | ILLUSTRATION | MANUSCRIPT
+  imageCredit    String?  // attribution / "איור" note
+
+  // External refs
+  sefariaTopicSlug String?
+  numSources       Int?
+
   // Empire context
   empireId      String?
   empire        Empire?   @relation(fields: [empireId], references: [id])

@@ -31,6 +31,9 @@ export async function GET(request: NextRequest) {
         nameHe: true,
         period: true,
         role: true,
+        imageUrl: true,
+        birthStart: true,
+        deathEnd: true,
       },
     });
     // Relevance ranking: exact name > bare name (no honorific) > name contains > bio contains

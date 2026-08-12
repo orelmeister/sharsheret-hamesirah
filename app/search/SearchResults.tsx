@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { ScholarAvatar } from '@/components/ScholarAvatar';
+import { PERIODS } from '@/lib/constants';
+import { formatYearRange } from '@/lib/utils';
 
 interface SearchResult {
-  scholars: Array<{ id: string; slug: string; nameHe: string; period: string; role: string | null }>;
+  scholars: Array<{ id: string; slug: string; nameHe: string; period: string; role: string | null; imageUrl: string | null; birthStart: number | null; deathEnd: number | null }>;
   sources: Array<{ id: string; titleHe: string; type: string; tractate: string | null }>;
   tags: Array<{ id: string; nameHe: string; slug: string }>;
 }
@@ -44,18 +47,29 @@ export function SearchResults({ query }: { query: string }) {
         <section>
           <h2 className="font-display text-xl text-stone-700 mb-3">חכמים</h2>
           <div className="space-y-2">
-            {results.scholars.map((s) => (
-              <Link
-                key={s.id}
-                href={`/scholars/${s.slug}`}
-                className="block scholar-card hover:border-accent"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-stone-800">{s.nameHe}</h3>
-                  {s.role && <span className="text-sm text-stone-500">{s.role}</span>}
-                </div>
-              </Link>
-            ))}
+            {results.scholars.map((s) => {
+              const p = PERIODS[s.period as keyof typeof PERIODS];
+              return (
+                <Link
+                  key={s.id}
+                  href={`/scholars/${s.slug}`}
+                  className="flex items-center gap-3 scholar-card py-3"
+                >
+                  <ScholarAvatar nameHe={s.nameHe} period={s.period} imageUrl={s.imageUrl} size={46} rounded="full" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-display font-bold text-ink">{s.nameHe}</h3>
+                      {p && <span className={`period-badge text-[11px] ${p.bgClass}`}>{p.label}</span>}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-ink-muted mt-0.5">
+                      {s.role && <span>{s.role}</span>}
+                      {s.birthStart != null && s.deathEnd != null && <span>· {formatYearRange(s.birthStart, s.deathEnd)}</span>}
+                    </div>
+                  </div>
+                  <span className="text-ink-muted">←</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
