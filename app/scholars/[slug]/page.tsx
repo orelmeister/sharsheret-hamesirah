@@ -71,14 +71,18 @@ export default async function ScholarPage({ params }: { params: { slug: string }
   // Merge internal (relationship-graph) chain with Sefaria's teacher/student lists.
   type ChainPerson = { nameHe: string; slug: string | null; sefSlug?: string | null };
   type SefLink = { he: string; sefSlug?: string | null; ourSlug?: string | null };
-  const normName = (s: string) => (s || '').replace(/[\s"'״׳()\[\]־,.:]/g, '');
+  const normName = (s: string) =>
+    (s || '').replace(/[\s"'״׳()\[\]־,.:0-9]/g, '').replace(/^(רבן|רבי|רב|מר)/, '');
   function mergeChain(internal: ChainPerson[], sefaria: SefLink[]): ChainPerson[] {
     const out: ChainPerson[] = [];
-    const seen = new Set<string>();
+    const seenSlug = new Set<string>();
+    const seenName = new Set<string>();
     const add = (p: ChainPerson) => {
-      const key = p.slug || normName(p.nameHe);
-      if (!key || seen.has(key)) return;
-      seen.add(key);
+      const nk = normName(p.nameHe);
+      if (p.slug && seenSlug.has(p.slug)) return;
+      if (nk && seenName.has(nk)) return;
+      if (p.slug) seenSlug.add(p.slug);
+      if (nk) seenName.add(nk);
       out.push(p);
     };
     for (const p of internal) add(p);
