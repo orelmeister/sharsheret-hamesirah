@@ -1,20 +1,18 @@
 'use client';
 
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import cytoscape, { Core, EventObject } from 'cytoscape';
 import { PERIODS, PERIOD_ORDER, RELATIONSHIP_TYPES } from '@/lib/constants';
 
-// ── Color mapping ──
 const PERIOD_COLORS: Record<string, string> = {
-  ANSHEI_KNESSET: '#5f7d54', // olive
-  ZUGOT: '#3d5a8a', // indigo
-  TANNAIM: '#a8792c', // ochre
-  AMORAIM_ERETZ_YISRAEL: '#b0603a', // terracotta
-  AMORAIM_BAVEL: '#9e3b3b', // madder
-  SAVORAIM: '#4b5266', // ink-slate
+  ANSHEI_KNESSET: '#5f7d54',
+  ZUGOT: '#3d5a8a',
+  TANNAIM: '#a8792c',
+  AMORAIM_ERETZ_YISRAEL: '#b0603a',
+  AMORAIM_BAVEL: '#9e3b3b',
+  SAVORAIM: '#4b5266',
 };
-
 const PERIOD_COLORS_BG: Record<string, string> = {
   ANSHEI_KNESSET: '#e9efe3',
   ZUGOT: '#e6ebf4',
@@ -23,8 +21,6 @@ const PERIOD_COLORS_BG: Record<string, string> = {
   AMORAIM_BAVEL: '#f2e0df',
   SAVORAIM: '#e7e9ef',
 };
-
-// ── Relationship line styles ──
 const RELATIONSHIP_STYLES: Record<string, { dash: string; width: number; color: string }> = {
   RAV: { dash: 'solid', width: 2.5, color: '#0f6b63' },
   STUDENT: { dash: 'solid', width: 2.5, color: '#0f6b63' },
@@ -34,515 +30,257 @@ const RELATIONSHIP_STYLES: Record<string, { dash: string; width: number; color: 
   FAMILY: { dash: 'dashed', width: 2, color: '#5f7d54' },
 };
 
-interface GraphNode {
-  id: string;
-  label: string;
-  slug: string;
-  period: string;
-  role: string | null;
-}
-
-interface GraphEdge {
-  id: string;
-  source: string;
-  target: string;
-  type: string;
-  confidence: string;
-}
-
-interface GraphViewProps {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
+interface GraphNode { id: string; label: string; slug: string; period: string; role: string | null; }
+interface GraphEdge { id: string; source: string; target: string; type: string; confidence: string; }
+interface GraphViewProps { nodes: GraphNode[]; edges: GraphEdge[]; }
 
 export function GraphView({ nodes, edges }: GraphViewProps) {
-  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
   const [search, setSearch] = useState('');
   const [layout, setLayout] = useState<'cose' | 'breadthfirst' | 'grid'>('cose');
-  const [showLegend, setShowLegend] = useState(true);
+  const [showLegend, setShowLegend] = useState(false);
+  const [showIsolated, setShowIsolated] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState<string | null>(null);
+  const [selected, setSelected] = useState<GraphNode | null>(null);
 
-  // Build Cytoscape elements
+  // Which nodes have at least one edge
+  const degree = useMemo(() => {
+    const d = new Map<string, number>();
+    for (const e of edges) { d.set(e.source, (d.get(e.source) || 0) + 1); d.set(e.target, (d.get(e.target) || 0) + 1); }
+    return d;
+  }, [edges]);
+
+  const isolatedCount = useMemo(() => nodes.filter((n) => !degree.get(n.id)).length, [nodes, degree]);
+
+  // Visible node set based on filters
+  const visibleNodes = useMemo(() => {
+    return nodes.filter((n) => {
+      if (!showIsolated && !degree.get(n.id)) return false;
+      if (periodFilter && n.period !== periodFilter) return false;
+      return true;
+    });
+  }, [nodes, degree, showIsolated, periodFilter]);
+
   const elements = useMemo(() => {
-    const cyNodes = nodes.map((n) => ({
-      data: {
-        id: n.id,
-        label: n.label,
-        slug: n.slug,
-        period: n.period,
-        role: n.role || '',
-      },
+    const vis = new Set(visibleNodes.map((n) => n.id));
+    const cyNodes = visibleNodes.map((n) => ({
+      data: { id: n.id, label: n.label, slug: n.slug, period: n.period, role: n.role || '' },
     }));
-
-    const cyEdges = edges.map((e) => ({
-      data: {
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        type: e.type,
-        confidence: e.confidence,
-      },
-    }));
-
+    const cyEdges = edges
+      .filter((e) => vis.has(e.source) && vis.has(e.target))
+      .map((e) => ({ data: { id: e.id, source: e.source, target: e.target, type: e.type, confidence: e.confidence } }));
     return [...cyNodes, ...cyEdges];
-  }, [nodes, edges]);
+  }, [visibleNodes, edges]);
 
-  // Initialize Cytoscape
   useEffect(() => {
     if (!containerRef.current || elements.length === 0) return;
-
-    // Clean up previous instance
-    if (cyRef.current) {
-      cyRef.current.destroy();
-    }
+    if (cyRef.current) cyRef.current.destroy();
 
     const cy = cytoscape({
       container: containerRef.current,
       elements,
       style: [
-        // ── Node style ──
         {
           selector: 'node',
           style: {
-            'background-color': (el: cytoscape.NodeSingular) => {
-              const period = el.data('period');
-              return PERIOD_COLORS_BG[period] || '#F3F4F6';
-            },
-            'border-color': (el: cytoscape.NodeSingular) => {
-              const period = el.data('period');
-              return PERIOD_COLORS[period] || '#9CA3AF';
-            },
+            'background-color': (el: cytoscape.NodeSingular) => PERIOD_COLORS_BG[el.data('period')] || '#eee',
+            'border-color': (el: cytoscape.NodeSingular) => PERIOD_COLORS[el.data('period')] || '#999',
             'border-width': 2,
-            'border-opacity': 0.8,
             'label': 'data(label)',
-            'font-size': '12px',
-            'font-family': 'var(--font-heebo), Heebo, sans-serif',
-            'color': '#1F2937',
+            'font-size': '11px',
+            'font-family': 'var(--font-heebo), Assistant, sans-serif',
+            'color': '#211d18',
             'text-valign': 'bottom',
             'text-halign': 'center',
-            'text-margin-y': 6,
+            'text-margin-y': 5,
             'text-wrap': 'wrap',
-            'text-max-width': '100px',
-            'width': 28,
-            'height': 28,
-            'shape': 'ellipse',
-            'transition-property': 'width, height, border-width',
-            'transition-duration': 200,
+            'text-max-width': '90px',
+            'width': 26,
+            'height': 26,
+            'transition-property': 'width, height, border-width, opacity',
+            'transition-duration': 150,
           },
         },
-        // ── Hover highlight ──
-        {
-          selector: 'node.hovered',
-          style: {
-            'width': 40,
-            'height': 40,
-            'border-width': 4,
-            'z-index': 10,
-          },
-        },
-        // ── Selected node ──
-        {
-          selector: 'node:selected',
-          style: {
-            'border-width': 4,
-            'border-color': '#1F2937',
-            'z-index': 10,
-          },
-        },
-        // ── Edge style ──
+        { selector: 'node.hovered', style: { 'width': 38, 'height': 38, 'border-width': 4, 'z-index': 10 } },
+        { selector: 'node.focused', style: { 'border-width': 5, 'border-color': '#0f6b63', 'width': 42, 'height': 42, 'z-index': 20 } },
+        { selector: 'node.neighbor', style: { 'border-width': 3, 'z-index': 12 } },
+        { selector: 'node.dimmed', style: { 'opacity': 0.12 } },
+        { selector: 'node.highlighted', style: { 'border-width': 5, 'border-color': '#0f6b63', 'width': 42, 'height': 42, 'z-index': 20 } },
         {
           selector: 'edge',
           style: {
-            'width': (el: cytoscape.EdgeSingular) => {
-              const type = el.data('type') as string;
-              return RELATIONSHIP_STYLES[type]?.width ?? 1.5;
-            },
-            'line-color': (el: cytoscape.EdgeSingular) => {
-              const type = el.data('type') as string;
-              return RELATIONSHIP_STYLES[type]?.color ?? '#9CA3AF';
-            },
-            'line-style': (el: cytoscape.EdgeSingular) => {
-              const type = el.data('type') as string;
-              const dash = RELATIONSHIP_STYLES[type]?.dash;
-              return (dash ?? 'solid') as cytoscape.Css.LineStyle;
-            },
-            'target-arrow-color': (el: cytoscape.EdgeSingular) => {
-              const type = el.data('type') as string;
-              return RELATIONSHIP_STYLES[type]?.color ?? '#9CA3AF';
-            },
+            'width': (el: cytoscape.EdgeSingular) => RELATIONSHIP_STYLES[el.data('type') as string]?.width ?? 1.5,
+            'line-color': (el: cytoscape.EdgeSingular) => RELATIONSHIP_STYLES[el.data('type') as string]?.color ?? '#9ca39a',
+            'line-style': (el: cytoscape.EdgeSingular) => (RELATIONSHIP_STYLES[el.data('type') as string]?.dash ?? 'solid') as cytoscape.Css.LineStyle,
+            'target-arrow-color': (el: cytoscape.EdgeSingular) => RELATIONSHIP_STYLES[el.data('type') as string]?.color ?? '#9ca39a',
             'target-arrow-shape': 'triangle',
+            'arrow-scale': 0.8,
             'curve-style': 'bezier',
-            'opacity': 0.5,
+            'opacity': 0.45,
           },
         },
-        // ── Edge hover ──
-        {
-          selector: 'edge.hovered',
-          style: {
-            'opacity': 0.9,
-            'width': 4,
-            'z-index': 5,
-          },
-        },
-        // ── Search highlight ──
-        {
-          selector: 'node.highlighted',
-          style: {
-            'border-width': 5,
-            'border-color': '#F59E0B',
-            'width': 42,
-            'height': 42,
-            'z-index': 20,
-          },
-        },
-        {
-          selector: 'node.dimmed',
-          style: {
-            'opacity': 0.2,
-          },
-        },
-        {
-          selector: 'edge.dimmed',
-          style: {
-            'opacity': 0.05,
-          },
-        },
+        { selector: 'edge.dimmed', style: { 'opacity': 0.04 } },
+        { selector: 'edge.neighbor', style: { 'opacity': 0.85, 'width': 3.5 } },
       ],
-      layout: {
-        name: layout,
-        ...(layout === 'breadthfirst'
-          ? {
-              directed: true,
-              spacingFactor: 1.2,
-              avoidOverlap: true,
-            }
-          : {}),
-        ...(layout === 'grid'
-          ? {
-              rows: Math.ceil(Math.sqrt(nodes.length)),
-              avoidOverlap: true,
-            }
-          : {}),
-        ...(layout === 'cose'
-          ? {
-              nodeRepulsion: () => 8000,
-              idealEdgeLength: () => 120,
-              gravity: 0.25,
-              numIter: 2000,
-              initialTemp: 200,
-            }
-          : {}),
-      },
-      wheelSensitivity: 0.3,
+      layout: layoutOpts(layout, visibleNodes.length),
       minZoom: 0.1,
       maxZoom: 3,
     });
 
-    // ── Click handler ──
+    const clearFocus = () => {
+      cy.elements().removeClass('dimmed neighbor focused hovered highlighted');
+      setSelected(null);
+    };
+
     cy.on('tap', 'node', (evt: EventObject) => {
       const node = evt.target;
-      const slug = node.data('slug');
-      if (slug) {
-        router.push(`/scholars/${slug}`);
-      }
+      cy.elements().removeClass('dimmed neighbor focused highlighted');
+      const neighborhood = node.closedNeighborhood();
+      cy.elements().not(neighborhood).addClass('dimmed');
+      neighborhood.nodes().addClass('neighbor');
+      neighborhood.edges().addClass('neighbor');
+      node.addClass('focused');
+      setSelected({ id: node.id(), label: node.data('label'), slug: node.data('slug'), period: node.data('period'), role: node.data('role') || null });
     });
-
-    // ── Hover highlight (nodes + edges) ──
-    cy.on('mouseover', 'node', (evt: EventObject) => {
-      evt.target.addClass('hovered');
-    });
-    cy.on('mouseout', 'node', (evt: EventObject) => {
-      evt.target.removeClass('hovered');
-    });
-
-    // ── Tooltip on edge hover (via popper-style) ──
-    cy.on('mouseover', 'edge', (evt: EventObject) => {
-      const edge = evt.target;
-      edge.addClass('hovered');
-      const type = edge.data('type') as string;
-      const typeLabel = RELATIONSHIP_TYPES[type as keyof typeof RELATIONSHIP_TYPES] || type;
-      const container = containerRef.current;
-      if (!container) return;
-
-      // Simple tooltip via title
-      const sourceNode = cy.getElementById(edge.data('source'));
-      const targetNode = cy.getElementById(edge.data('target'));
-      const sourceLabel = sourceNode.data('label') || '';
-      const targetLabel = targetNode.data('label') || '';
-      container.title = `${sourceLabel} → ${targetLabel} (${typeLabel})`;
-    });
-
-    cy.on('mouseout', 'edge', (evt: EventObject) => {
-      evt.target.removeClass('hovered');
-      if (containerRef.current) {
-        containerRef.current.title = '';
-      }
-    });
+    cy.on('tap', (evt: EventObject) => { if (evt.target === cy) clearFocus(); });
+    cy.on('mouseover', 'node', (evt: EventObject) => evt.target.addClass('hovered'));
+    cy.on('mouseout', 'node', (evt: EventObject) => evt.target.removeClass('hovered'));
 
     cyRef.current = cy;
+    return () => { cy.destroy(); cyRef.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elements, layout]);
 
-    return () => {
-      cy.destroy();
-      cyRef.current = null;
-    };
-  }, [elements, layout, router]);
-
-  // Relayout when layout changes
-  useEffect(() => {
+  const handleSearch = useCallback((query: string) => {
+    setSearch(query);
     const cy = cyRef.current;
     if (!cy) return;
-
-    const layoutOptions: any = {
-      name: layout,
-      animate: true,
-      animationDuration: 500,
-    };
-
-    if (layout === 'breadthfirst') {
-      layoutOptions.directed = true;
-      layoutOptions.spacingFactor = 1.2;
-      layoutOptions.avoidOverlap = true;
-    }
-    if (layout === 'grid') {
-      layoutOptions.rows = Math.ceil(Math.sqrt(nodes.length));
-      layoutOptions.avoidOverlap = true;
-    }
-    if (layout === 'cose') {
-      layoutOptions.nodeRepulsion = () => 8000;
-      layoutOptions.idealEdgeLength = () => 120;
-      layoutOptions.gravity = 0.25;
-      layoutOptions.numIter = 2000;
-    }
-
-    const runLayout = cy.layout(layoutOptions);
-    runLayout.run();
-  }, [layout, nodes.length]);
-
-  // Search/filter handler
-  const handleSearch = useCallback(
-    (query: string) => {
-      setSearch(query);
-      const cy = cyRef.current;
-      if (!cy) return;
-
-      cy.nodes().removeClass('highlighted dimmed');
-      cy.edges().removeClass('dimmed');
-
-      if (!query.trim()) return;
-
-      const q = query.trim().toLowerCase();
-      const matchingNodes = cy.nodes().filter((n) => {
-        const label = (n.data('label') || '').toLowerCase();
-        const role = (n.data('role') || '').toLowerCase();
-        return label.includes(q) || role.includes(q);
-      });
-
-      matchingNodes.addClass('highlighted');
-
-      // Dim all non-matching nodes and their edges
-      const nonMatching = cy.nodes().not(matchingNodes);
-      nonMatching.addClass('dimmed');
-
-      // Dim edges not connected to matching nodes
-      cy.edges().forEach((e) => {
-        if (!matchingNodes.has(e.source()) && !matchingNodes.has(e.target())) {
-          e.addClass('dimmed');
-        }
-      });
-
-      // Fit to matching
-      if (matchingNodes.length > 0) {
-        cy.animate({
-          fit: { eles: matchingNodes, padding: 60 },
-          duration: 400,
-        });
-      }
-    },
-    []
-  );
-
-  const handleZoomIn = () => cyRef.current?.zoom(cyRef.current.zoom() * 1.2);
-  const handleZoomOut = () => cyRef.current?.zoom(cyRef.current.zoom() / 1.2);
-  const handleFit = () => cyRef.current?.fit(undefined, 40);
-  const handleReset = () => {
-    const cy = cyRef.current;
-    if (!cy) return;
-    setSearch('');
     cy.nodes().removeClass('highlighted dimmed');
     cy.edges().removeClass('dimmed');
-    cy.fit(undefined, 40);
-  };
+    if (!query.trim()) return;
+    const q = query.trim().toLowerCase();
+    const match = cy.nodes().filter((n) => (n.data('label') || '').toLowerCase().includes(q));
+    match.addClass('highlighted');
+    cy.nodes().not(match).addClass('dimmed');
+    cy.edges().forEach((e) => { if (!match.has(e.source()) && !match.has(e.target())) e.addClass('dimmed'); });
+    if (match.length > 0) cy.animate({ fit: { eles: match, padding: 80 }, duration: 350 });
+  }, []);
+
+  const zoomBy = (f: number) => cyRef.current?.zoom({ level: (cyRef.current.zoom() || 1) * f, renderedPosition: { x: (containerRef.current?.clientWidth || 0) / 2, y: (containerRef.current?.clientHeight || 0) / 2 } });
+  const fit = () => cyRef.current?.fit(undefined, 40);
 
   return (
     <div className="flex-1 relative flex" dir="rtl">
-      {/* Graph container */}
-      <div
-        ref={containerRef}
-        className="flex-1 bg-stone-50"
-        style={{ minHeight: 0 }}
-      />
+      <div ref={containerRef} className="flex-1 bg-parchment" style={{ minHeight: 0 }} />
 
-      {/* Controls overlay */}
-      <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
-        <button
-          onClick={handleZoomIn}
-          className="w-9 h-9 bg-white border border-stone-300 rounded-lg flex items-center justify-center text-stone-700 hover:bg-stone-100 transition-colors shadow-sm"
-          title="הגדל"
-        >
-          +
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="w-9 h-9 bg-white border border-stone-300 rounded-lg flex items-center justify-center text-stone-700 hover:bg-stone-100 transition-colors shadow-sm"
-          title="הקטן"
-        >
-          −
-        </button>
-        <button
-          onClick={handleFit}
-          className="w-9 h-9 bg-white border border-stone-300 rounded-lg flex items-center justify-center text-stone-700 hover:bg-stone-100 transition-colors shadow-sm"
-          title="התאם למסך"
-        >
-          ⊡
-        </button>
-        <button
-          onClick={handleReset}
-          className="w-9 h-9 bg-white border border-stone-300 rounded-lg flex items-center justify-center text-stone-700 hover:bg-stone-100 transition-colors shadow-sm"
-          title="אפס"
-        >
-          ↺
-        </button>
-      </div>
-
-      {/* Search bar */}
-      <div className="absolute top-3 right-3 z-20 w-64">
+      {/* Top controls bar */}
+      <div className="absolute top-2 inset-x-2 z-20 flex flex-wrap items-center gap-2">
         <input
           type="text"
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="🔍 חפש חכם..."
-          className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-right text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent shadow-sm"
-          dir="rtl"
+          className="flex-1 min-w-[140px] max-w-xs px-3 py-2 bg-surface border border-line rounded-lg text-right text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent shadow-card"
         />
+        <div className="flex gap-1 bg-surface/95 rounded-lg border border-line p-1 shadow-card">
+          {(['cose', 'breadthfirst', 'grid'] as const).map((l) => (
+            <button key={l} onClick={() => setLayout(l)} className={`px-2.5 py-1 rounded-md text-xs transition-colors ${layout === l ? 'bg-accent text-white' : 'text-ink-soft hover:bg-parchment-dark'}`}>
+              {l === 'cose' ? 'כוח' : l === 'breadthfirst' ? 'היררכי' : 'רשת'}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Layout selector */}
-      <div className="absolute bottom-20 right-3 z-20 flex gap-1 bg-white/90 backdrop-blur rounded-lg border border-stone-200 p-1 shadow-sm">
-        {(['cose', 'breadthfirst', 'grid'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLayout(l)}
-            className={`px-3 py-1.5 rounded-md text-xs transition-colors ${
-              layout === l
-                ? 'bg-stone-800 text-white'
-                : 'text-stone-600 hover:bg-stone-100'
-            }`}
-          >
-            {l === 'cose' ? 'כוח' : l === 'breadthfirst' ? 'היררכי' : 'רשת'}
+      {/* Period filter chips */}
+      <div className="absolute top-14 inset-x-2 z-20 flex flex-wrap gap-1">
+        <button onClick={() => setPeriodFilter(null)} className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${!periodFilter ? 'bg-ink text-white border-ink' : 'bg-surface/90 text-ink-soft border-line hover:bg-parchment-dark'}`}>הכל</button>
+        {PERIOD_ORDER.map((k) => (
+          <button key={k} onClick={() => setPeriodFilter(periodFilter === k ? null : k)}
+            className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${periodFilter === k ? 'text-white' : 'bg-surface/90 hover:bg-parchment-dark'}`}
+            style={periodFilter === k ? { backgroundColor: PERIOD_COLORS[k], borderColor: PERIOD_COLORS[k] } : { borderColor: PERIOD_COLORS[k], color: PERIOD_COLORS[k] }}>
+            {PERIODS[k].label}
           </button>
         ))}
       </div>
 
+      {/* Zoom + isolated toggle (bottom-start) */}
+      <div className="absolute bottom-3 start-3 z-20 flex flex-col gap-1.5">
+        <button onClick={() => zoomBy(1.25)} className="w-9 h-9 bg-surface border border-line rounded-lg flex items-center justify-center text-ink hover:bg-parchment-dark shadow-card">+</button>
+        <button onClick={() => zoomBy(0.8)} className="w-9 h-9 bg-surface border border-line rounded-lg flex items-center justify-center text-ink hover:bg-parchment-dark shadow-card">−</button>
+        <button onClick={fit} className="w-9 h-9 bg-surface border border-line rounded-lg flex items-center justify-center text-ink hover:bg-parchment-dark shadow-card" title="התאם למסך">⊡</button>
+      </div>
+
+      {/* Isolated toggle + legend button (bottom-end) */}
+      <div className="absolute bottom-3 end-3 z-20 flex flex-col items-end gap-2">
+        {isolatedCount > 0 && (
+          <button onClick={() => setShowIsolated((v) => !v)} className={`px-3 py-1.5 rounded-lg text-xs border shadow-card transition-colors ${showIsolated ? 'bg-accent text-white border-accent' : 'bg-surface text-ink-soft border-line hover:bg-parchment-dark'}`}>
+            {showIsolated ? 'הסתר' : 'הצג'} חכמים ללא קשרים ({isolatedCount})
+          </button>
+        )}
+        <button onClick={() => setShowLegend((v) => !v)} className="px-3 py-1.5 rounded-lg text-xs bg-surface border border-line text-ink-soft hover:bg-parchment-dark shadow-card">
+          {showLegend ? 'סגור מקרא' : '📖 מקרא'}
+        </button>
+      </div>
+
       {/* Legend */}
       {showLegend && (
-        <div className="absolute bottom-3 left-3 z-20 bg-white/95 backdrop-blur rounded-lg border border-stone-200 p-3 shadow-sm max-w-[220px]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-stone-700">מקרא</span>
-            <button
-              onClick={() => setShowLegend(false)}
-              className="text-stone-400 hover:text-stone-600 text-xs"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="space-y-1.5">
-            <p className="text-[10px] text-stone-500 mb-1">תקופות:</p>
-            {PERIOD_ORDER.map((key) => (
-              <div key={key} className="flex items-center gap-2 text-xs">
-                <span
-                  className="w-3 h-3 rounded-full shrink-0 border"
-                  style={{
-                    backgroundColor: PERIOD_COLORS_BG[key],
-                    borderColor: PERIOD_COLORS[key],
-                  }}
-                />
-                <span className="text-stone-700 leading-tight">{PERIODS[key].label}</span>
+        <div className="absolute bottom-16 end-3 z-30 bg-surface/97 backdrop-blur rounded-xl border border-line p-3 shadow-card-hover max-w-[230px]">
+          <p className="text-[11px] text-ink-muted mb-1.5 font-semibold">תקופות</p>
+          {PERIOD_ORDER.map((k) => (
+            <div key={k} className="flex items-center gap-2 text-xs mb-1">
+              <span className="w-3 h-3 rounded-full border" style={{ backgroundColor: PERIOD_COLORS_BG[k], borderColor: PERIOD_COLORS[k] }} />
+              <span className="text-ink-soft">{PERIODS[k].label}</span>
+            </div>
+          ))}
+          <div className="border-t border-line my-2" />
+          <p className="text-[11px] text-ink-muted mb-1.5 font-semibold">קשרים</p>
+          {(Object.keys(RELATIONSHIP_TYPES) as Array<keyof typeof RELATIONSHIP_TYPES>).map((k) => {
+            const st = RELATIONSHIP_STYLES[k];
+            return (
+              <div key={k} className="flex items-center gap-2 text-xs mb-1">
+                <svg width="22" height="10"><line x1="2" y1="5" x2="20" y2="5" stroke={st.color} strokeWidth={st.width} strokeDasharray={st.dash === 'dashed' ? '4,2' : st.dash === 'dotted' ? '2,2' : 'none'} /></svg>
+                <span className="text-ink-soft">{RELATIONSHIP_TYPES[k]}</span>
               </div>
-            ))}
-            <div className="border-t border-stone-100 my-1.5" />
-            <p className="text-[10px] text-stone-500 mb-1">קשרים:</p>
-            {(Object.keys(RELATIONSHIP_TYPES) as Array<keyof typeof RELATIONSHIP_TYPES>).map(
-              (key) => {
-                const style = RELATIONSHIP_STYLES[key];
-                return (
-                  <div key={key} className="flex items-center gap-2 text-xs">
-                    <svg width="20" height="12" className="shrink-0">
-                      <line
-                        x1="2"
-                        y1="6"
-                        x2="18"
-                        y2="6"
-                        stroke={style.color}
-                        strokeWidth={style.width}
-                        strokeDasharray={
-                          style.dash === 'dashed'
-                            ? '4,2'
-                            : style.dash === 'dotted'
-                            ? '2,2'
-                            : 'none'
-                        }
-                        markerEnd="url(#arrowhead)"
-                      />
-                    </svg>
-                    <span className="text-stone-700 leading-tight">
-                      {RELATIONSHIP_TYPES[key]}
-                    </span>
-                  </div>
-                );
-              }
-            )}
-          </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Hidden legend toggle when closed */}
-      {!showLegend && (
-        <button
-          onClick={() => setShowLegend(true)}
-          className="absolute bottom-3 left-3 z-20 bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-600 hover:bg-stone-100 shadow-sm"
-        >
-          📖 מקרא
-        </button>
+      {/* Selected scholar panel */}
+      {selected && (
+        <div className="absolute top-24 start-3 z-30 bg-surface rounded-xl border border-line shadow-card-hover p-4 max-w-[240px]">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="period-badge text-[11px] mb-1" style={{ backgroundColor: PERIOD_COLORS_BG[selected.period], color: PERIOD_COLORS[selected.period], borderColor: PERIOD_COLORS[selected.period] }}>{PERIODS[selected.period as keyof typeof PERIODS]?.label}</p>
+              <h3 className="font-display font-bold text-lg text-ink leading-tight">{selected.label}</h3>
+              {selected.role && <p className="text-xs text-ink-muted mt-0.5">{selected.role}</p>}
+            </div>
+            <button onClick={() => { cyRef.current?.elements().removeClass('dimmed neighbor focused'); setSelected(null); }} className="text-ink-muted hover:text-ink text-sm">✕</button>
+          </div>
+          <Link href={`/scholars/${selected.slug}`} className="btn-accent w-full mt-3 py-2 text-sm">פתח דף חכם ←</Link>
+        </div>
       )}
 
-      {/* Empty state */}
       {elements.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-stone-400 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center text-ink-muted pointer-events-none">
           <div className="text-center">
             <div className="text-4xl mb-3">🕸️</div>
-            <p className="text-lg">אין נתוני גרף זמינים</p>
-            <p className="text-sm mt-1">יש להוסיף חכמים וקשרים למערכת</p>
+            <p className="text-lg">אין קשרים להצגה בתקופה זו</p>
           </div>
         </div>
       )}
-
-      {/* SVG defs for legend arrows */}
-      <svg width="0" height="0" className="absolute">
-        <defs>
-          <marker
-            id="arrowhead"
-            viewBox="0 0 10 7"
-            refX="9"
-            refY="3.5"
-            markerWidth="6"
-            markerHeight="5"
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#0f6b63" />
-          </marker>
-        </defs>
-      </svg>
     </div>
   );
+}
+
+function layoutOpts(layout: string, n: number): cytoscape.LayoutOptions {
+  if (layout === 'breadthfirst') return { name: 'breadthfirst', directed: true, spacingFactor: 1.3, avoidOverlap: true, padding: 30 } as cytoscape.LayoutOptions;
+  if (layout === 'grid') return { name: 'grid', rows: Math.ceil(Math.sqrt(n)), avoidOverlap: true, padding: 30 } as cytoscape.LayoutOptions;
+  return {
+    name: 'cose', animate: false, padding: 40,
+    nodeRepulsion: () => 12000, idealEdgeLength: () => 90, edgeElasticity: () => 120,
+    gravity: 0.3, numIter: 1500, initialTemp: 220, coolingFactor: 0.95, nestingFactor: 1.1,
+    componentSpacing: 90,
+  } as unknown as cytoscape.LayoutOptions;
 }

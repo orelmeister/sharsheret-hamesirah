@@ -65,10 +65,10 @@ export default async function GraphPage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col h-[calc(100vh-57px)]">
-        <div className="shrink-0 px-4 py-4 border-b border-stone-200 bg-white">
-          <h1 className="font-display text-2xl text-stone-800">גרף קשרים</h1>
-          <p className="text-sm text-stone-500">קשרי רב-תלמיד, חברותא ובר פלוגתא — {nodes.length} חכמים, {edges.length} קשרים</p>
+      <main className="flex flex-col h-[calc(100vh-56px)]">
+        <div className="shrink-0 px-4 py-3 border-b border-line bg-surface">
+          <h1 className="font-display text-2xl font-bold text-ink">גרף קשרים</h1>
+          <p className="text-sm text-ink-muted">קשרי רב-תלמיד, חברותא ובר פלוגתא — {nodes.length} חכמים, {edges.length} קשרים</p>
         </div>
         <GraphView nodes={nodes} edges={edges} />
       </main>
