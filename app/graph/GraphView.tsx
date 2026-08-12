@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import cytoscape, { Core } from 'cytoscape';
+import cytoscape, { Core, EventObject } from 'cytoscape';
 import { PERIODS, PERIOD_ORDER, RELATIONSHIP_TYPES } from '@/lib/constants';
 
 // ── Color mapping ──
@@ -127,14 +127,13 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
             'width': 28,
             'height': 28,
             'shape': 'ellipse',
-            'cursor': 'pointer',
             'transition-property': 'width, height, border-width',
             'transition-duration': 200,
           },
         },
         // ── Hover highlight ──
         {
-          selector: 'node:hover',
+          selector: 'node.hovered',
           style: {
             'width': 40,
             'height': 40,
@@ -179,7 +178,7 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
         },
         // ── Edge hover ──
         {
-          selector: 'edge:hover',
+          selector: 'edge.hovered',
           style: {
             'opacity': 0.9,
             'width': 4,
@@ -249,9 +248,18 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
       }
     });
 
+    // ── Hover highlight (nodes + edges) ──
+    cy.on('mouseover', 'node', (evt: EventObject) => {
+      evt.target.addClass('hovered');
+    });
+    cy.on('mouseout', 'node', (evt: EventObject) => {
+      evt.target.removeClass('hovered');
+    });
+
     // ── Tooltip on edge hover (via popper-style) ──
     cy.on('mouseover', 'edge', (evt: EventObject) => {
       const edge = evt.target;
+      edge.addClass('hovered');
       const type = edge.data('type') as string;
       const typeLabel = RELATIONSHIP_TYPES[type as keyof typeof RELATIONSHIP_TYPES] || type;
       const container = containerRef.current;
@@ -265,7 +273,8 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
       container.title = `${sourceLabel} → ${targetLabel} (${typeLabel})`;
     });
 
-    cy.on('mouseout', 'edge', () => {
+    cy.on('mouseout', 'edge', (evt: EventObject) => {
+      evt.target.removeClass('hovered');
       if (containerRef.current) {
         containerRef.current.title = '';
       }

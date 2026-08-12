@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const results: any = {};
 
   if (type === 'all' || type === 'scholar') {
-    results.scholars = await prisma.scholar.findMany({
+    const matches = await prisma.scholar.findMany({
       where: {
         status: 'PUBLISHED',
         OR: [
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
           { memorySummary: { contains: q, mode: 'insensitive' } },
         ],
       },
-      take: limit,
+      take: 500,
       select: {
         id: true,
         slug: true,
@@ -33,6 +33,17 @@ export async function GET(request: NextRequest) {
         role: true,
       },
     });
+    // Relevance ranking: exact name > bare name (no honorific) > name contains > bio contains
+    const bare = (s: string) => s.replace(/^(רבן|רבי|רב|מר)\s+/, '');
+    const score = (s: { nameHe: string }) => {
+      const n = s.nameHe;
+      if (n === q) return 0;
+      if (bare(n) === q) return 1;
+      if (bare(n).startsWith(q)) return 2;
+      if (n.includes(q)) return 3;
+      return 4;
+    };
+    results.scholars = matches.sort((a, b) => score(a) - score(b)).slice(0, limit);
   }
 
   if (type === 'all' || type === 'source') {
