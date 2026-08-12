@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
-import NextDynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { prisma } from '@/lib/prisma';
+import { MapLoader } from './MapLoader';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,19 +9,6 @@ export const metadata: Metadata = {
   title: 'מפה',
   description: 'מפה אינטראקטיבית — מרכזי תורה בארץ ישראל ובבל',
 };
-
-// Dynamically import MapView with SSR disabled (Leaflet needs browser APIs)
-const MapView = NextDynamic(() => import('./MapView').then((mod) => mod.MapView), {
-  ssr: false,
-  loading: () => (
-    <div className="flex-1 bg-stone-100 flex items-center justify-center">
-      <div className="text-center text-stone-400">
-        <div className="text-4xl mb-3">🗺️</div>
-        <p className="text-lg">טוען מפה...</p>
-      </div>
-    </div>
-  ),
-});
 
 interface PlaceData {
   id: string;
@@ -96,7 +83,7 @@ export default async function MapPage() {
             מרכזי תורה בארץ ישראל ובבל — {places.length} מקומות
           </p>
         </div>
-        <MapView places={places} />
+        <MapLoader places={places} />
       </main>
     </>
   );
