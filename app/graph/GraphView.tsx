@@ -124,9 +124,14 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
         { selector: 'edge.neighbor', style: { 'opacity': 0.85, 'width': 3.5 } },
       ],
       layout: layoutOpts(layout, visibleNodes.length),
-      minZoom: 0.1,
+      minZoom: 0.08,
       maxZoom: 3,
     });
+
+    // Frame the graph once layout settles
+    cy.one('layoutstop', () => cy.fit(undefined, 50));
+    // Fallback fit in case layoutstop doesn't fire
+    setTimeout(() => { try { cy.fit(undefined, 50); } catch { /* noop */ } }, 800);
 
     const clearFocus = () => {
       cy.elements().removeClass('dimmed neighbor focused hovered highlighted');
@@ -278,9 +283,9 @@ function layoutOpts(layout: string, n: number): cytoscape.LayoutOptions {
   if (layout === 'breadthfirst') return { name: 'breadthfirst', directed: true, spacingFactor: 1.3, avoidOverlap: true, padding: 30 } as cytoscape.LayoutOptions;
   if (layout === 'grid') return { name: 'grid', rows: Math.ceil(Math.sqrt(n)), avoidOverlap: true, padding: 30 } as cytoscape.LayoutOptions;
   return {
-    name: 'cose', animate: false, padding: 40,
-    nodeRepulsion: () => 12000, idealEdgeLength: () => 90, edgeElasticity: () => 120,
-    gravity: 0.3, numIter: 1500, initialTemp: 220, coolingFactor: 0.95, nestingFactor: 1.1,
-    componentSpacing: 90,
+    name: 'cose', animate: false, padding: 50, fit: true,
+    nodeRepulsion: () => 14000, idealEdgeLength: () => 85, edgeElasticity: () => 130,
+    gravity: 0.55, numIter: 1800, initialTemp: 220, coolingFactor: 0.95, nestingFactor: 1.1,
+    componentSpacing: 45,
   } as unknown as cytoscape.LayoutOptions;
 }

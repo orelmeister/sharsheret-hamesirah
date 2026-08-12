@@ -61,8 +61,8 @@ const TOP_PAD = 20;
 const TIMELINE_Y = 60;
 const EVENT_ROW_Y = 100;
 const SCHOLAR_ROW_START_Y = 140;
-const ROW_HEIGHT = 28;
-const MAX_ROWS = 15; // Max rows before overlapping
+const ROW_HEIGHT = 26;
+const MAX_ROWS = 44; // enough lanes to avoid forced overlap across all periods
 
 export function TimelineView({ scholars, events }: TimelineViewProps) {
   const router = useRouter();
@@ -109,7 +109,9 @@ export function TimelineView({ scholars, events }: TimelineViewProps) {
           break;
         }
       }
-      if (assignedRow === -1) assignedRow = 0; // Force into row 0 if all full
+      // If every lane is occupied at this x, add a brand-new lane rather than
+      // forcing an overlap into row 0.
+      if (assignedRow === -1) assignedRow = rowEnds.length;
 
       const scholarX = Math.max(LEFT_PAD, x - w / 2);
       rowEnds[assignedRow] = scholarX + w;

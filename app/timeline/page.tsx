@@ -80,10 +80,10 @@ export default async function TimelinePage() {
   return (
     <>
       <Header />
-      <main className="flex flex-col h-[calc(100vh-57px)]">
-        <div className="shrink-0 px-4 py-4 border-b border-stone-200 bg-white">
-          <h1 className="font-display text-2xl text-stone-800">ציר זמן</h1>
-          <p className="text-sm text-stone-500">
+      <main className="flex flex-col h-[calc(100vh-56px)]">
+        <div className="shrink-0 px-4 py-3 border-b border-line bg-surface">
+          <h1 className="font-display text-2xl font-bold text-ink">ציר זמן</h1>
+          <p className="text-sm text-ink-muted">
             מאנשי כנסת הגדולה ועד חתימת התלמוד — {scholars.length} חכמים, {events.length} אירועים היסטוריים
           </p>
         </div>
