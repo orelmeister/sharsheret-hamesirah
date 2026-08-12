@@ -7,31 +7,31 @@ import { PERIODS, PERIOD_ORDER, RELATIONSHIP_TYPES } from '@/lib/constants';
 
 // ── Color mapping ──
 const PERIOD_COLORS: Record<string, string> = {
-  ANSHEI_KNESSET: '#059669', // emerald-600
-  ZUGOT: '#2563EB', // blue-600
-  TANNAIM: '#D97706', // amber-600
-  AMORAIM_ERETZ_YISRAEL: '#EA580C', // orange-600
-  AMORAIM_BAVEL: '#DC2626', // red-600
-  SAVORAIM: '#7C3AED', // purple-600
+  ANSHEI_KNESSET: '#5f7d54', // olive
+  ZUGOT: '#3d5a8a', // indigo
+  TANNAIM: '#a8792c', // ochre
+  AMORAIM_ERETZ_YISRAEL: '#b0603a', // terracotta
+  AMORAIM_BAVEL: '#9e3b3b', // madder
+  SAVORAIM: '#4b5266', // ink-slate
 };
 
 const PERIOD_COLORS_BG: Record<string, string> = {
-  ANSHEI_KNESSET: '#D1FAE5',
-  ZUGOT: '#DBEAFE',
-  TANNAIM: '#FEF3C7',
-  AMORAIM_ERETZ_YISRAEL: '#FFEDD5',
-  AMORAIM_BAVEL: '#FEE2E2',
-  SAVORAIM: '#EDE9FE',
+  ANSHEI_KNESSET: '#e9efe3',
+  ZUGOT: '#e6ebf4',
+  TANNAIM: '#f3ead3',
+  AMORAIM_ERETZ_YISRAEL: '#f4e5db',
+  AMORAIM_BAVEL: '#f2e0df',
+  SAVORAIM: '#e7e9ef',
 };
 
 // ── Relationship line styles ──
 const RELATIONSHIP_STYLES: Record<string, { dash: string; width: number; color: string }> = {
-  RAV: { dash: 'solid', width: 2.5, color: '#2563EB' },
-  STUDENT: { dash: 'solid', width: 2.5, color: '#2563EB' },
-  CHEVRUTA: { dash: 'dashed', width: 2, color: '#7C3AED' },
-  DISPUTANT: { dash: 'dotted', width: 2, color: '#DC2626' },
-  CONTEMPORARY: { dash: 'solid', width: 1, color: '#9CA3AF' },
-  FAMILY: { dash: 'dashed', width: 2, color: '#059669' },
+  RAV: { dash: 'solid', width: 2.5, color: '#0f6b63' },
+  STUDENT: { dash: 'solid', width: 2.5, color: '#0f6b63' },
+  CHEVRUTA: { dash: 'dashed', width: 2, color: '#9c7c4a' },
+  DISPUTANT: { dash: 'dotted', width: 2, color: '#a23b3b' },
+  CONTEMPORARY: { dash: 'solid', width: 1, color: '#9ca39a' },
+  FAMILY: { dash: 'dashed', width: 2, color: '#5f7d54' },
 };
 
 interface GraphNode {
@@ -539,7 +539,7 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
             markerHeight="5"
             orient="auto"
           >
-            <polygon points="0 0, 10 3.5, 0 7" fill="#2563EB" />
+            <polygon points="0 0, 10 3.5, 0 7" fill="#0f6b63" />
           </marker>
         </defs>
       </svg>

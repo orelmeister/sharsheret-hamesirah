@@ -36,18 +36,18 @@ interface TimelineViewProps {
 
 // ── Color mapping ──
 const PERIOD_COLORS: Record<string, string> = {
-  ANSHEI_KNESSET: '#059669',
-  ZUGOT: '#2563EB',
-  TANNAIM: '#D97706',
-  AMORAIM_ERETZ_YISRAEL: '#EA580C',
-  AMORAIM_BAVEL: '#DC2626',
-  SAVORAIM: '#7C3AED',
+  ANSHEI_KNESSET: '#5f7d54',
+  ZUGOT: '#3d5a8a',
+  TANNAIM: '#a8792c',
+  AMORAIM_ERETZ_YISRAEL: '#b0603a',
+  AMORAIM_BAVEL: '#9e3b3b',
+  SAVORAIM: '#4b5266',
 };
 
 const EVENT_CATEGORY_COLORS: Record<string, string> = {
-  EREZ_YISRAEL: '#D97706',
+  EREZ_YISRAEL: '#a8792c',
   WORLD: '#6B7280',
-  JEWISH_HISTORY: '#2563EB',
+  JEWISH_HISTORY: '#0f6b63',
 };
 
 // ── Constants ──
