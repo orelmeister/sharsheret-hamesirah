@@ -42,6 +42,9 @@ model Scholar {
   // External refs
   sefariaTopicSlug String?
   numSources       Int?
+  // Sefaria teacher/student lists: [{ he, sefSlug, ourSlug|null }]
+  sefariaTeachers  Json?
+  sefariaStudents  Json?
 
   // Empire context
   empireId      String?
