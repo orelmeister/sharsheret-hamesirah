@@ -57,7 +57,7 @@ export default async function AdminLayout({
         {/* User info */}
         <div className="mt-auto p-4 border-t border-stone-200">
           <div className="flex items-center gap-2 text-sm text-stone-600">
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-accent-soft flex items-center justify-center text-accent-dark font-bold text-xs">
               {sessionName.charAt(0)}
             </div>
             <span className="truncate">{sessionName}</span>

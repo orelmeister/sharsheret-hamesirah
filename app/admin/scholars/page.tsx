@@ -114,7 +114,7 @@ export default function AdminScholarsPage() {
         </div>
         <Link
           href="/admin/scholars/new"
-          className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium
+          className="px-4 py-2.5 bg-accent hover:bg-accent-dark text-white font-medium
                      rounded-lg transition-colors flex items-center gap-2"
         >
           <span>+</span> חכם חדש
@@ -130,7 +130,7 @@ export default function AdminScholarsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="px-3 py-2 rounded-lg border border-stone-300 bg-white text-sm
-                       focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+                       focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent
                        min-w-[200px] text-right"
             dir="auto"
           />
@@ -138,7 +138,7 @@ export default function AdminScholarsPage() {
             value={periodFilter}
             onChange={(e) => { setPeriodFilter(e.target.value); setPage(1); }}
             className="px-3 py-2 rounded-lg border border-stone-300 bg-white text-sm
-                       focus:outline-none focus:ring-2 focus:ring-amber-500"
+                       focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="">כל התקופות</option>
             {Object.entries(PERIODS).map(([key, info]) => (
@@ -149,7 +149,7 @@ export default function AdminScholarsPage() {
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
             className="px-3 py-2 rounded-lg border border-stone-300 bg-white text-sm
-                       focus:outline-none focus:ring-2 focus:ring-amber-500"
+                       focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="">כל הסטטוסים</option>
             {Object.entries(STATUS_LABELS).map(([key, label]) => (

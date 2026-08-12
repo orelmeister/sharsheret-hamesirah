@@ -85,7 +85,7 @@ export default async function ScholarsListPage({
                     </span>
                   )}
                 </div>
-                <h3 className="font-display text-xl text-stone-800 mt-2 group-hover:text-amber-700 transition-colors">
+                <h3 className="font-display text-xl text-stone-800 mt-2 group-hover:text-accent-dark transition-colors">
                   {s.nameHe}
                 </h3>
                 {s.role && <p className="text-sm text-stone-500 mt-1">{s.role}</p>}

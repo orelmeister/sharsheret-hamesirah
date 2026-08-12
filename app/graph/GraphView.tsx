@@ -422,7 +422,7 @@ export function GraphView({ nodes, edges }: GraphViewProps) {
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="🔍 חפש חכם..."
-          className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-right text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 shadow-sm"
+          className="w-full px-3 py-2 bg-white border border-stone-300 rounded-lg text-right text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent shadow-sm"
           dir="rtl"
         />
       </div>

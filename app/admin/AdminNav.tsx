@@ -63,7 +63,7 @@ export default function AdminNav() {
             href={item.href}
             className={`${baseClasses} ${
               isActive
-                ? 'bg-amber-100 text-amber-800'
+                ? 'bg-accent-soft text-accent-dark'
                 : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
             }`}
           >

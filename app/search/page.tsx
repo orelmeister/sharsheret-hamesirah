@@ -19,12 +19,12 @@ export default function SearchPage({
               defaultValue={searchParams.q || ''}
               placeholder="חפש חכם, מקור, תקופה..."
               className="w-full px-6 py-4 text-lg rounded-xl border-2 border-stone-200 
-                         focus:border-amber-400 focus:outline-none text-right
+                         focus:border-accent focus:outline-none text-right
                          placeholder:text-stone-400"
             />
             <button
               type="submit"
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-amber-500 hover:bg-amber-600
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-accent hover:bg-accent-dark
                          text-white px-6 py-2 rounded-lg transition-colors"
             >
               חפש

@@ -193,8 +193,8 @@ export default function AdminImportPage() {
             className="block w-full text-sm text-stone-600
                        file:ml-4 file:py-2 file:px-4 file:rounded-lg
                        file:border-0 file:text-sm file:font-medium
-                       file:bg-amber-50 file:text-amber-700
-                       hover:file:bg-amber-100 file:cursor-pointer
+                       file:bg-accent-soft file:text-accent-dark
+                       hover:file:bg-accent-soft file:cursor-pointer
                        file:transition-colors"
           />
         </div>
@@ -208,7 +208,7 @@ export default function AdminImportPage() {
             onChange={(e) => setJsonText(e.target.value)}
             rows={12}
             className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                       focus:outline-none focus:ring-2 focus:ring-amber-500
+                       focus:outline-none focus:ring-2 focus:ring-accent
                        font-mono text-xs text-left resize-y"
             dir="ltr"
             placeholder={EXAMPLE_JSON}
@@ -255,7 +255,7 @@ export default function AdminImportPage() {
             <button
               onClick={handleImport}
               disabled={importing}
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400
+              className="px-4 py-2 bg-accent hover:bg-accent-dark disabled:bg-accent/50
                          text-white font-medium rounded-lg text-sm transition-colors"
             >
               {importing ? 'מייבא...' : `📥 יבא ${preview.length} חכמים`}
@@ -306,9 +306,9 @@ export default function AdminImportPage() {
               <p className="text-3xl font-bold text-emerald-700">{result.imported}</p>
               <p className="text-sm text-emerald-600">חכמים יובאו בהצלחה</p>
             </div>
-            <div className="bg-amber-50 rounded-lg p-4 text-center">
-              <p className="text-3xl font-bold text-amber-700">{result.duplicates}</p>
-              <p className="text-sm text-amber-600">חכמים כפולים (דולגו)</p>
+            <div className="bg-accent-soft rounded-lg p-4 text-center">
+              <p className="text-3xl font-bold text-accent-dark">{result.duplicates}</p>
+              <p className="text-sm text-accent-dark">חכמים כפולים (דולגו)</p>
             </div>
           </div>
 
@@ -336,8 +336,8 @@ export default function AdminImportPage() {
                 {result.duplicateSlugs.map((slug) => (
                   <span
                     key={slug}
-                    className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700
-                               text-xs border border-amber-200 font-mono"
+                    className="px-2.5 py-1 rounded-full bg-accent-soft text-accent-dark
+                               text-xs border border-accent/30 font-mono"
                   >
                     {slug}
                   </span>

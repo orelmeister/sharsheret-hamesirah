@@ -274,7 +274,7 @@ export default function AdminScholarEditPage() {
                 onChange={(e) => updateField('nameHe', e.target.value)}
                 required
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500
+                           focus:outline-none focus:ring-2 focus:ring-accent
                            text-right"
                 dir="auto"
                 placeholder="לדוגמה: רבי עקיבא"
@@ -303,7 +303,7 @@ export default function AdminScholarEditPage() {
                 onChange={(e) => { setAutoSlug(false); updateField('slug', e.target.value); }}
                 required
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500
+                           focus:outline-none focus:ring-2 focus:ring-accent
                            font-mono text-sm text-left"
                 dir="ltr"
                 placeholder="rebbe-akiva"
@@ -319,7 +319,7 @@ export default function AdminScholarEditPage() {
                 value={form.period}
                 onChange={(e) => updateField('period', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500"
+                           focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 {Object.entries(PERIODS).map(([key, info]) => (
                   <option key={key} value={key}>{info.label}</option>
@@ -336,7 +336,7 @@ export default function AdminScholarEditPage() {
                 value={form.status}
                 onChange={(e) => updateField('status', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500"
+                           focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 {STATUS_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -354,7 +354,7 @@ export default function AdminScholarEditPage() {
                 value={form.role}
                 onChange={(e) => updateField('role', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500
+                           focus:outline-none focus:ring-2 focus:ring-accent
                            text-right"
                 dir="auto"
                 placeholder="כהן גדול / נשיא / ראש ישיבה"
@@ -371,7 +371,7 @@ export default function AdminScholarEditPage() {
                 value={form.placeNotes}
                 onChange={(e) => updateField('placeNotes', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500
+                           focus:outline-none focus:ring-2 focus:ring-accent
                            text-right"
                 dir="auto"
                 placeholder="ירושלים, טבריה"
@@ -391,7 +391,7 @@ export default function AdminScholarEditPage() {
                 onChange={(e) => setAlternateNamesInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addAlternateName(); } }}
                 className="flex-1 px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500
+                           focus:outline-none focus:ring-2 focus:ring-accent
                            text-right"
                 dir="auto"
                 placeholder="הוסף שם חלופי..."
@@ -411,13 +411,13 @@ export default function AdminScholarEditPage() {
                   <span
                     key={i}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full
-                               bg-amber-50 text-amber-800 text-sm border border-amber-200"
+                               bg-accent-soft text-accent-dark text-sm border border-accent/30"
                   >
                     {name}
                     <button
                       type="button"
                       onClick={() => removeAlternateName(i)}
-                      className="text-amber-500 hover:text-amber-700 text-xs ml-1"
+                      className="text-accent hover:text-accent-dark text-xs ml-1"
                     >
                       ✕
                     </button>
@@ -448,7 +448,7 @@ export default function AdminScholarEditPage() {
                 value={form.birthStart}
                 onChange={(e) => updateField('birthStart', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500 text-left"
+                           focus:outline-none focus:ring-2 focus:ring-accent text-left"
                 dir="ltr"
                 placeholder="למשל -350"
               />
@@ -464,7 +464,7 @@ export default function AdminScholarEditPage() {
                 value={form.birthEnd}
                 onChange={(e) => updateField('birthEnd', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500 text-left"
+                           focus:outline-none focus:ring-2 focus:ring-accent text-left"
                 dir="ltr"
                 placeholder="למשל -300"
               />
@@ -480,7 +480,7 @@ export default function AdminScholarEditPage() {
                 value={form.deathStart}
                 onChange={(e) => updateField('deathStart', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500 text-left"
+                           focus:outline-none focus:ring-2 focus:ring-accent text-left"
                 dir="ltr"
                 placeholder="למשל -270"
               />
@@ -496,7 +496,7 @@ export default function AdminScholarEditPage() {
                 value={form.deathEnd}
                 onChange={(e) => updateField('deathEnd', e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                           focus:outline-none focus:ring-2 focus:ring-amber-500 text-left"
+                           focus:outline-none focus:ring-2 focus:ring-accent text-left"
                 dir="ltr"
                 placeholder="למשל -250"
               />
@@ -512,7 +512,7 @@ export default function AdminScholarEditPage() {
               value={form.dateConfidence}
               onChange={(e) => updateField('dateConfidence', e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                         focus:outline-none focus:ring-2 focus:ring-amber-500"
+                         focus:outline-none focus:ring-2 focus:ring-accent"
             >
               {DATE_CONFIDENCE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -537,7 +537,7 @@ export default function AdminScholarEditPage() {
               onChange={(e) => updateField('biographyShort', e.target.value)}
               rows={4}
               className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                         focus:outline-none focus:ring-2 focus:ring-amber-500
+                         focus:outline-none focus:ring-2 focus:ring-accent
                          text-right resize-y"
               dir="auto"
             />
@@ -553,7 +553,7 @@ export default function AdminScholarEditPage() {
               onChange={(e) => updateField('featuredQuote', e.target.value)}
               rows={2}
               className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                         focus:outline-none focus:ring-2 focus:ring-amber-500
+                         focus:outline-none focus:ring-2 focus:ring-accent
                          text-right resize-y"
               dir="auto"
             />
@@ -569,7 +569,7 @@ export default function AdminScholarEditPage() {
               onChange={(e) => updateField('featuredStory', e.target.value)}
               rows={4}
               className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                         focus:outline-none focus:ring-2 focus:ring-amber-500
+                         focus:outline-none focus:ring-2 focus:ring-accent
                          text-right resize-y"
               dir="auto"
             />
@@ -585,7 +585,7 @@ export default function AdminScholarEditPage() {
               onChange={(e) => updateField('memorySummary', e.target.value)}
               rows={2}
               className="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white
-                         focus:outline-none focus:ring-2 focus:ring-amber-500
+                         focus:outline-none focus:ring-2 focus:ring-accent
                          text-right resize-y"
               dir="auto"
             />
@@ -597,9 +597,9 @@ export default function AdminScholarEditPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400
+            className="px-6 py-2.5 bg-accent hover:bg-accent-dark disabled:bg-accent/50
                        text-white font-medium rounded-lg transition-colors
-                       focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+                       focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
           >
             {saving ? 'שומר...' : isNew ? 'צור חכם' : 'שמור שינויים'}
           </button>

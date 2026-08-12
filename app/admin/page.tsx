@@ -80,7 +80,7 @@ export default async function AdminDashboardPage() {
           title="טיוטות"
           count={draftScholars}
           icon="📝"
-          color="bg-amber-50 text-amber-600"
+          color="bg-accent-soft text-accent-dark"
         />
         <CountCard
           title="מקורות"
@@ -124,7 +124,7 @@ export default async function AdminDashboardPage() {
                     className={`h-full rounded-full transition-all ${
                       periodKey === 'ANSHEI_KNESSET' ? 'bg-emerald-500' :
                       periodKey === 'ZUGOT' ? 'bg-blue-500' :
-                      periodKey === 'TANNAIM' ? 'bg-amber-500' :
+                      periodKey === 'TANNAIM' ? 'bg-accent' :
                       periodKey === 'AMORAIM_ERETZ_YISRAEL' ? 'bg-orange-500' :
                       periodKey === 'AMORAIM_BAVEL' ? 'bg-red-500' :
                       'bg-purple-500'

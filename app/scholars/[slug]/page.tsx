@@ -128,7 +128,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
                 {teachers.length > 0 && <div className="text-stone-300 text-xl">↓</div>}
 
                 {/* Current Scholar */}
-                <div className="px-6 py-3 bg-amber-100 rounded-xl font-bold text-lg text-amber-900">
+                <div className="px-6 py-3 bg-accent-soft rounded-xl font-bold text-lg text-accent-dark">
                   {scholar.nameHe}
                 </div>
 
@@ -168,7 +168,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
             {scholar.featuredQuote && (
               <section>
                 <h2 className="section-title">אמרה נבחרת</h2>
-                <blockquote className="border-r-4 border-amber-300 pr-4 py-2 bg-amber-50/50 rounded-l-lg">
+                <blockquote className="border-r-4 border-accent pr-4 py-2 bg-accent-soft/60 rounded-l-lg">
                   <p className="text-lg text-stone-700 leading-relaxed">&ldquo;{scholar.featuredQuote}&rdquo;</p>
                 </blockquote>
               </section>
@@ -200,7 +200,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
                             href={ss.source.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-amber-700 hover:underline"
+                            className="text-accent-dark hover:underline"
                           >
                             (ספריא ↗)
                           </a>
@@ -226,7 +226,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
                       <Link
                         key={r.id}
                         href={`/scholars/${r.peer.slug}`}
-                        className="block text-sm text-stone-600 hover:text-amber-700 py-1"
+                        className="block text-sm text-stone-600 hover:text-accent-dark py-1"
                       >
                         {r.peer.nameHe}
                       </Link>
@@ -240,7 +240,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
                       <Link
                         key={r.id}
                         href={`/scholars/${r.peer.slug}`}
-                        className="block text-sm text-stone-600 hover:text-amber-700 py-1"
+                        className="block text-sm text-stone-600 hover:text-accent-dark py-1"
                       >
                         {r.peer.nameHe}
                       </Link>
@@ -252,7 +252,7 @@ export default async function ScholarPage({ params }: { params: { slug: string }
 
             {/* Memory Summary */}
             {scholar.memorySummary && (
-              <div className="scholar-card bg-amber-50/50">
+              <div className="scholar-card bg-accent-soft/60">
                 <h3 className="font-display text-lg text-stone-700 mb-2">לזכור את החכם</h3>
                 <p className="text-sm text-stone-600">{scholar.memorySummary}</p>
               </div>

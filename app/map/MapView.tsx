@@ -266,7 +266,7 @@ export function MapView({ places }: MapViewProps) {
                           e.stopPropagation();
                           router.push(`/scholars/${scholar.slug}`);
                         }}
-                        className="block w-full text-right px-2 py-1.5 rounded hover:bg-stone-50 transition-colors text-sm text-stone-700 hover:text-amber-700"
+                        className="block w-full text-right px-2 py-1.5 rounded hover:bg-stone-50 transition-colors text-sm text-stone-700 hover:text-accent-dark"
                       >
                         <span className="font-medium">{scholar.nameHe}</span>
                         {scholar.role && (
@@ -329,7 +329,7 @@ export function MapView({ places }: MapViewProps) {
               onClick={() => setSelectedPlace(place.id)}
               className={`w-full text-right px-3 py-2 text-sm transition-colors flex items-center justify-between ${
                 selectedPlace === place.id
-                  ? 'bg-amber-50 text-amber-800'
+                  ? 'bg-accent-soft text-accent-dark'
                   : 'text-stone-700 hover:bg-stone-50'
               }`}
             >

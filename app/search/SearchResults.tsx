@@ -48,7 +48,7 @@ export function SearchResults({ query }: { query: string }) {
               <Link
                 key={s.id}
                 href={`/scholars/${s.slug}`}
-                className="block scholar-card hover:border-amber-300"
+                className="block scholar-card hover:border-accent"
               >
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-stone-800">{s.nameHe}</h3>

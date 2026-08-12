@@ -37,7 +37,7 @@ export default function AboutPage() {
             </p>
             <p className="mt-2">
               הטקסטים מסופקים באדיבות{' '}
-              <a href="https://www.sefaria.org" className="text-amber-700 hover:underline" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.sefaria.org" className="text-accent-dark hover:underline" target="_blank" rel="noopener noreferrer">
                 ספריא (Sefaria)
               </a>
               .
@@ -48,7 +48,7 @@ export default function AboutPage() {
             <h2 className="font-display text-xl text-stone-800 mb-3">קוד פתוח</h2>
             <p>
               הקוד זמין ב-{' '}
-              <a href="https://github.com/orelmeister/sharsheret-hamesirah" className="text-amber-700 hover:underline" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/orelmeister/sharsheret-hamesirah" className="text-accent-dark hover:underline" target="_blank" rel="noopener noreferrer">
                 GitHub
               </a>
               {' '}תחת רישיון MIT. מוזמנים לתרום, לתקן ולהוסיף תוכן.
