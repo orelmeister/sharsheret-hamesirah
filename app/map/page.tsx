@@ -6,8 +6,8 @@ import { MapLoader } from './MapLoader';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'מפה',
-  description: 'מפה אינטראקטיבית — מרכזי תורה בארץ ישראל ובבל',
+  title: 'מפות',
+  description: 'מפות — מרכזי תורה בארץ ישראל ובבל, ומפות תקופתיות: בבל, פרס, יוון ורומא',
 };
 
 interface PlaceData {
@@ -78,9 +78,9 @@ export default async function MapPage() {
       <Header />
       <main className="flex flex-col h-[calc(100vh-56px)]">
         <div className="shrink-0 px-4 py-3 border-b border-line bg-surface">
-          <h1 className="font-display text-2xl font-bold text-ink">מפה</h1>
+          <h1 className="font-display text-2xl font-bold text-ink">מפות</h1>
           <p className="text-sm text-ink-muted">
-            מרכזי תורה בארץ ישראל ובבל — {places.length} מקומות
+            מרכזי תורה במפה מודרנית ובמפות תקופתיות — בבל, פרס, יוון ורומא
           </p>
         </div>
         <MapLoader places={places} />

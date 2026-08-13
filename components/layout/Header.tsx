@@ -8,7 +8,7 @@ const NAV = [
   { href: '/scholars', label: 'חכמים' },
   { href: '/timeline', label: 'ציר זמן' },
   { href: '/graph', label: 'גרף' },
-  { href: '/map', label: 'מפה' },
+  { href: '/map', label: 'מפות' },
 ];
 
 export function Header() {

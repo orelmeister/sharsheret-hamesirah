@@ -90,7 +90,47 @@ interface PlaceData {
 
 interface MapViewProps {
   places: PlaceData[];
+  lang?: 'he' | 'en';
 }
+
+// ── English fallback names for places lacking nameEn in the DB ──
+const PLACE_EN: Record<string, string> = {
+  ירושלים: 'Jerusalem',
+  יבנה: 'Yavneh (Jamnia)',
+  ציפורי: 'Sepphoris (Tzippori)',
+  טבריה: 'Tiberias',
+  סורא: 'Sura',
+  פומבדיתא: 'Pumbedita',
+  נהרדעא: 'Nehardea',
+  'נהר דעא': 'Nehardea',
+  מחוזא: 'Mechoza',
+  ניסיביס: 'Nisibis',
+  קיסריה: 'Caesarea',
+  'בית שערים': "Beit She'arim",
+  לוד: 'Lod (Lydda)',
+  'בני ברק': 'Bnei Brak',
+  אושא: 'Usha',
+  שפרעם: "Shefa-'Amr",
+  'בית לחם': 'Bethlehem',
+  חברון: 'Hebron',
+  ביתר: 'Beitar',
+  יפו: 'Jaffa',
+  בבל: 'Babylon',
+  סכנין: 'Sakhnin',
+};
+
+const TILE_LAYERS = {
+  he: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  },
+  en: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  },
+} as const;
 
 // ── Fit bounds component ──
 function FitBounds({ places }: { places: Array<{ lat: number; lng: number }> }) {
@@ -109,9 +149,14 @@ function FitBounds({ places }: { places: Array<{ lat: number; lng: number }> }) 
   return null;
 }
 
-export function MapView({ places }: MapViewProps) {
+export function MapView({ places, lang = 'he' }: MapViewProps) {
   const router = useRouter();
   const [selectedPlace, setSelectedPlace] = useState<string | null>(null);
+
+  const placeName = (p: { nameHe: string; nameEn: string | null }) =>
+    lang === 'en' ? p.nameEn || PLACE_EN[p.nameHe] || p.nameHe : p.nameHe;
+  const placeNameSecondary = (p: { nameHe: string; nameEn: string | null }) =>
+    lang === 'en' ? p.nameHe : p.nameEn || PLACE_EN[p.nameHe] || null;
 
   // Enrich places with coordinates, using DB coords first, then known locations
   const geoPlaces = useMemo(() => {
@@ -165,10 +210,11 @@ export function MapView({ places }: MapViewProps) {
         scrollWheelZoom={true}
         zoomControl={true}
       >
-        {/* Tile layer - OpenStreetMap with Hebrew-friendly carto */}
+        {/* Tile layer — Hebrew-labeled OSM or Latin-script CARTO Voyager */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          key={lang}
+          attribution={TILE_LAYERS[lang].attribution}
+          url={TILE_LAYERS[lang].url}
         />
 
         {/* Fit bounds to all places */}
@@ -229,13 +275,15 @@ export function MapView({ places }: MapViewProps) {
               >
                 <div dir="rtl" className="text-right">
                   <h3 className="font-display font-bold text-base text-ink mb-1">
-                    {place.nameHe}
+                    {placeName(place)}
                   </h3>
-                  {place.nameEn && (
-                    <p className="text-xs text-ink-muted mb-2">{place.nameEn}</p>
+                  {placeNameSecondary(place) && (
+                    <p className="text-xs text-ink-muted mb-2">{placeNameSecondary(place)}</p>
                   )}
                   <p className="text-sm text-ink-soft mb-2">
-                    {place.scholarCount} חכמים קשורים למקום זה
+                    {lang === 'en'
+                      ? `${place.scholarCount} scholars linked to this place`
+                      : `${place.scholarCount} חכמים קשורים למקום זה`}
                   </p>
 
                   {/* Period distribution pills */}
@@ -291,7 +339,7 @@ export function MapView({ places }: MapViewProps) {
 
       {/* Legend */}
       <div className="absolute bottom-4 left-4 z-[1000] bg-surface/95 backdrop-blur rounded-lg border border-line p-2.5 md:p-3 shadow-card">
-        <p className="text-xs font-bold text-ink mb-2">מספר חכמים</p>
+        <p className="text-xs font-bold text-ink mb-2">{lang === 'en' ? 'Scholars' : 'מספר חכמים'}</p>
         <div className="space-y-1.5">
           {[
             { min: 20, label: '20+' },
@@ -320,7 +368,9 @@ export function MapView({ places }: MapViewProps) {
       {/* Place list sidebar for quick navigation */}
       <div className="absolute top-3 right-3 z-[1000] max-h-[32vh] md:max-h-[42vh] overflow-y-auto bg-surface/95 backdrop-blur rounded-lg border border-line shadow-card w-44 md:w-56">
         <div className="p-2 border-b border-line sticky top-0 bg-surface/95">
-          <p className="text-xs font-bold text-ink-soft">מקומות ({geoPlaces.length})</p>
+          <p className="text-xs font-bold text-ink-soft">
+            {lang === 'en' ? `Places (${geoPlaces.length})` : `מקומות (${geoPlaces.length})`}
+          </p>
         </div>
         <div className="divide-y divide-line/60">
           {geoPlaces.map((place) => (
@@ -333,7 +383,7 @@ export function MapView({ places }: MapViewProps) {
                   : 'text-ink-soft hover:bg-parchment-dark'
               }`}
             >
-              <span className="truncate">{place.nameHe}</span>
+              <span className="truncate">{placeName(place)}</span>
               <span
                 className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white shrink-0 mr-2"
                 style={{ backgroundColor: getCountColor(place.scholarCount) }}
