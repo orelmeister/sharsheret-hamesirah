@@ -42,21 +42,21 @@ const KNOWN_LOCATIONS: Record<string, [number, number]> = {
 
 // ── Period color mapping for markers ──
 const PERIOD_COLORS: Record<string, string> = {
-  ANSHEI_KNESSET: '#059669',
-  ZUGOT: '#2563EB',
-  TANNAIM: '#D97706',
-  AMORAIM_ERETZ_YISRAEL: '#EA580C',
-  AMORAIM_BAVEL: '#DC2626',
-  SAVORAIM: '#7C3AED',
+  ANSHEI_KNESSET: '#5f7d54',
+  ZUGOT: '#3d5a8a',
+  TANNAIM: '#a8792c',
+  AMORAIM_ERETZ_YISRAEL: '#b0603a',
+  AMORAIM_BAVEL: '#9e3b3b',
+  SAVORAIM: '#4b5266',
 };
 
-// ── Get color based on scholar count intensity ──
+// ── Marker color: monochrome teal intensity by scholar count ──
 function getCountColor(count: number): string {
-  if (count >= 20) return '#DC2626'; // red
-  if (count >= 10) return '#EA580C'; // orange
-  if (count >= 5) return '#D97706'; // amber
-  if (count >= 2) return '#2563EB'; // blue
-  return '#059669'; // emerald
+  if (count >= 20) return '#0a504a';
+  if (count >= 10) return '#0f6b63';
+  if (count >= 5) return '#3a8b83';
+  if (count >= 2) return '#6ba9a3';
+  return '#9cc4bf';
 }
 
 function getCountSize(count: number): number {
@@ -142,7 +142,7 @@ export function MapView({ places }: MapViewProps) {
 
   if (geoPlaces.length === 0) {
     return (
-      <div className="flex-1 bg-stone-100 flex items-center justify-center text-stone-400">
+      <div className="flex-1 bg-parchment-dark flex items-center justify-center text-ink-muted">
         <div className="text-center">
           <div className="text-4xl mb-3">🗺️</div>
           <p className="text-lg">אין נתוני מיקומים זמינים</p>
@@ -228,13 +228,13 @@ export function MapView({ places }: MapViewProps) {
                 className="hebrew-popup"
               >
                 <div dir="rtl" className="text-right">
-                  <h3 className="font-bold text-base text-stone-800 mb-1">
+                  <h3 className="font-display font-bold text-base text-ink mb-1">
                     {place.nameHe}
                   </h3>
                   {place.nameEn && (
-                    <p className="text-xs text-stone-400 mb-2">{place.nameEn}</p>
+                    <p className="text-xs text-ink-muted mb-2">{place.nameEn}</p>
                   )}
-                  <p className="text-sm text-stone-600 mb-2">
+                  <p className="text-sm text-ink-soft mb-2">
                     {place.scholarCount} חכמים קשורים למקום זה
                   </p>
 
@@ -266,16 +266,16 @@ export function MapView({ places }: MapViewProps) {
                           e.stopPropagation();
                           router.push(`/scholars/${scholar.slug}`);
                         }}
-                        className="block w-full text-right px-2 py-1.5 rounded hover:bg-stone-50 transition-colors text-sm text-stone-700 hover:text-accent-dark"
+                        className="block w-full text-right px-2 py-1.5 rounded hover:bg-accent-soft transition-colors text-sm text-ink-soft hover:text-accent-dark"
                       >
                         <span className="font-medium">{scholar.nameHe}</span>
                         {scholar.role && (
-                          <span className="text-stone-400 text-xs mr-2">
+                          <span className="text-ink-muted text-xs mr-2">
                             {scholar.role}
                           </span>
                         )}
                         {scholar.notes && (
-                          <span className="block text-xs text-stone-400 mt-0.5">
+                          <span className="block text-xs text-ink-muted mt-0.5">
                             {scholar.notes}
                           </span>
                         )}
@@ -290,8 +290,8 @@ export function MapView({ places }: MapViewProps) {
       </MapContainer>
 
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur rounded-lg border border-stone-200 p-3 shadow-sm">
-        <p className="text-xs font-bold text-stone-700 mb-2">מספר חכמים</p>
+      <div className="absolute bottom-4 left-4 z-[1000] bg-surface/95 backdrop-blur rounded-lg border border-line p-2.5 md:p-3 shadow-card">
+        <p className="text-xs font-bold text-ink mb-2">מספר חכמים</p>
         <div className="space-y-1.5">
           {[
             { min: 20, label: '20+' },
@@ -311,18 +311,18 @@ export function MapView({ places }: MapViewProps) {
               >
                 {range.min}
               </span>
-              <span className="text-stone-600">{range.label}</span>
+              <span className="text-ink-soft">{range.label}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Place list sidebar for quick navigation */}
-      <div className="absolute top-3 right-3 z-[1000] max-h-[40vh] overflow-y-auto bg-white/95 backdrop-blur rounded-lg border border-stone-200 shadow-sm w-52">
-        <div className="p-2 border-b border-stone-100">
-          <p className="text-xs font-bold text-stone-600">מקומות ({geoPlaces.length})</p>
+      <div className="absolute top-3 right-3 z-[1000] max-h-[32vh] md:max-h-[42vh] overflow-y-auto bg-surface/95 backdrop-blur rounded-lg border border-line shadow-card w-44 md:w-56">
+        <div className="p-2 border-b border-line sticky top-0 bg-surface/95">
+          <p className="text-xs font-bold text-ink-soft">מקומות ({geoPlaces.length})</p>
         </div>
-        <div className="divide-y divide-stone-50">
+        <div className="divide-y divide-line/60">
           {geoPlaces.map((place) => (
             <button
               key={place.id}
@@ -330,7 +330,7 @@ export function MapView({ places }: MapViewProps) {
               className={`w-full text-right px-3 py-2 text-sm transition-colors flex items-center justify-between ${
                 selectedPlace === place.id
                   ? 'bg-accent-soft text-accent-dark'
-                  : 'text-stone-700 hover:bg-stone-50'
+                  : 'text-ink-soft hover:bg-parchment-dark'
               }`}
             >
               <span className="truncate">{place.nameHe}</span>
